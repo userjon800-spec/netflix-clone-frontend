@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { Toaster } from "react-hot-toast";
 const roboto = Roboto({
   subsets: ["latin"],
@@ -22,9 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${roboto.className}`}>
         <Toaster />
-        <Navbar />
         {children}
-        <Footer />
       </body>
     </html>
   );
