@@ -1,3 +1,4 @@
+'use client'
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -66,7 +67,7 @@ export default function Navbar() {
               )}
             </div>
             <Link
-              href="/login"
+              href="/auth/signin"
               className="bg-red-600 text-white px-4 py-1.5 rounded text-sm font-medium hover:bg-red-700 transition-colors"
             >
               Sign In

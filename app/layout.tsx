@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import Footer from "@/components/footer";
 const roboto = Roboto({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
@@ -21,6 +22,7 @@ export default function RootLayout({
       <body className={`${roboto.className}`}>
         <Toaster />
         {children}
+        <Footer />
       </body>
     </html>
   );

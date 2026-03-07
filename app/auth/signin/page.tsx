@@ -163,7 +163,7 @@ export default function SignIn() {
                   <li>Try resetting your password</li>
                 </ul>
                 <Link
-                  href="/auth/reset-password"
+                  href="/auth/reset"
                   className="text-[#e50914] hover:underline block mt-2"
                 >
                   Reset password
@@ -240,7 +240,6 @@ export default function SignIn() {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

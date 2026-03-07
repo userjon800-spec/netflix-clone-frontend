@@ -10,6 +10,7 @@ import {
 } from "react-icons/io5";
 import { FaUserCircle } from "react-icons/fa";
 import toast from "react-hot-toast";
+import Link from "next/link";
 interface Util {
   title: string;
   menu: string | null;
@@ -33,7 +34,10 @@ export default function MenuBar() {
   useEffect(() => {
     axios
       .get("http://localhost:7800/api/me", { withCredentials: true })
-      .then(({ data }) => setUser(data.user))
+      .then(({ data }) => {
+        localStorage.setItem("userId", data.user._id);
+        setUser(data.user);
+      })
       .catch((err) => console.error(err));
   }, []);
   useEffect(() => {
@@ -83,6 +87,7 @@ export default function MenuBar() {
       );
       toast.success(data.message);
       setUser(undefined);
+      localStorage.clear();
       setTimeout(() => router.replace("/auth/signin"), 1500);
     } catch (error) {
       console.error(error);
@@ -179,24 +184,18 @@ export default function MenuBar() {
                   <p className="text-sm text-white font-medium">{user?.name}</p>
                   <p className="text-xs text-gray-400">{user?.email}</p>
                 </div>
-                <a
+                <Link
                   href="/profile"
                   className="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-800 transition-colors"
                 >
                   Profile
-                </a>
-                <a
-                  href="/account"
+                </Link>
+                <Link
+                  href="/"
                   className="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-800 transition-colors"
                 >
                   Account
-                </a>
-                <a
-                  href="/help"
-                  className="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-800 transition-colors"
-                >
-                  Help Center
-                </a>
+                </Link>
                 <button
                   onClick={logout}
                   className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-gray-800 transition-colors border-t border-gray-800 mt-1"

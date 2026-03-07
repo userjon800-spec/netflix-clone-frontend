@@ -61,6 +61,13 @@ export default function Trending() {
     if (rating >= 6) return "text-yellow-500";
     return "text-red-500";
   };
+  const onReaction = async (id:number)=>{
+    try {
+      
+    } catch (error) {
+      console.error(error)
+    }
+  }
   if (loading) return <Loading />;
   return (
     <div className="px-16 py-8 max-md:px-4 relative group max-w-380 my-5">
@@ -133,7 +140,7 @@ export default function Trending() {
                         <IoAdd className="text-lg" />
                       </button>
                       <button className="bg-gray-500/50 text-white p-2 rounded-full hover:bg-gray-500/70 transition-colors">
-                        <IoThumbsUp className="text-lg" />
+                        <IoThumbsUp className="text-lg" onClick={()=>onReaction(movie.id)} />
                       </button>
                       <button className="bg-gray-500/50 text-white p-2 rounded-full hover:bg-gray-500/70 transition-colors ml-auto">
                         <IoChevronDown className="text-lg" />
