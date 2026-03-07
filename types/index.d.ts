@@ -14,6 +14,19 @@ export interface Movie {
   vote_average: number;
   vote_count: number;
 }
+export interface SavedMovie {
+  id: number;
+  userId: string;
+  movieId: number;
+  movieData: Movie;
+  createdAt: string;
+}
+export interface LikedMovie {
+  id: number;
+  movieId: number;
+  movieData: Movie;
+  createdAt: string;
+}
 export interface User {
   name: string;
   email: string;

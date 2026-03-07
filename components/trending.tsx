@@ -6,24 +6,15 @@ import {
   IoChevronBack,
   IoPlay,
   IoAdd,
-  IoThumbsUp,
   IoChevronDown,
 } from "react-icons/io5";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 import Loading from "./loading";
-interface Movie {
+import { Movie } from "@/types";
+interface LikedMovie {
   id: number;
-  title: string;
-  original_title: string;
-  backdrop_path: string;
-  poster_path: string;
-  overview: string;
-  release_date: string;
-  vote_average: number;
-  vote_count: number;
-  popularity: number;
-  genre_ids: number[];
-  adult: boolean;
-  media_type: string;
+  userId?: string;
+  movieId: number;
 }
 export default function Trending() {
   const [trending, setTrending] = useState<Movie[]>([]);
@@ -31,21 +22,33 @@ export default function Trending() {
   const [hoveredMovie, setHoveredMovie] = useState<number | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
   const [showControls, setShowControls] = useState(false);
+  const [likedMovies, setLikedMovies] = useState<number[]>([]);
   useEffect(() => {
-    const trendingMovio = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         const { data } = await axios.get(
           "https://api.themoviedb.org/3/trending/movie/day?api_key=45b668b102b231b5c4b6bc26aad2da2e",
         );
         setTrending(data.results || []);
+        const userId = localStorage.getItem("userId");
+        if (userId) {
+          const likedResponse = await axios.get(
+            `http://localhost:7800/api/liked-movies/${userId}`,
+            { withCredentials: true },
+          );
+          const likedIds = likedResponse.data.map(
+            (item: LikedMovie) => item.movieId,
+          );
+          setLikedMovies(likedIds);
+        }
       } catch (error) {
         console.error(error);
       } finally {
         setLoading(false);
       }
     };
-    trendingMovio();
+    fetchData();
   }, []);
   const scroll = (direction: "left" | "right") => {
     if (carouselRef.current) {
@@ -61,13 +64,49 @@ export default function Trending() {
     if (rating >= 6) return "text-yellow-500";
     return "text-red-500";
   };
-  const onReaction = async (id:number)=>{
+  const onReaction = async (movie: Movie) => {
     try {
-      
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        return;
+      }
+      const movieData = {
+        ...movie,
+        userId: userId,
+      };
+      const response = await axios.post(
+        "http://localhost:7800/api/liked-movie",
+        movieData,
+        { withCredentials: true },
+      );
+      if (response.status === 200) {
+        setLikedMovies((prev) => [...prev, movie.id]);
+      }
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
-  }
+  };
+  const unLike = async (movieId: number) => {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return;
+      const response = await axios.delete(
+        `http://localhost:7800/api/un-liked-movie/${movieId}`,
+        {
+          data: { userId },
+          withCredentials: true,
+        },
+      );
+      if (response.status === 200) {
+        setLikedMovies((prev) => prev.filter((id) => id !== movieId));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const isMovieLiked = (movieId: number) => {
+    return likedMovies.includes(movieId);
+  };
   if (loading) return <Loading />;
   return (
     <div className="px-16 py-8 max-md:px-4 relative group max-w-380 my-5">
@@ -127,6 +166,11 @@ export default function Trending() {
                 >
                   {getRatingPercentage(movie.vote_average)}%
                 </div>
+                {isMovieLiked(movie.id) && (
+                  <div className="absolute bottom-2 left-2 text-red-500">
+                    <FaHeart className="text-lg" />
+                  </div>
+                )}
                 {hoveredMovie === movie.id && (
                   <div className="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black to-transparent">
                     <h3 className="text-white font-bold text-sm mb-2 line-clamp-1">
@@ -139,8 +183,22 @@ export default function Trending() {
                       <button className="bg-gray-500/50 text-white p-2 rounded-full hover:bg-gray-500/70 transition-colors">
                         <IoAdd className="text-lg" />
                       </button>
-                      <button className="bg-gray-500/50 text-white p-2 rounded-full hover:bg-gray-500/70 transition-colors">
-                        <IoThumbsUp className="text-lg" onClick={()=>onReaction(movie.id)} />
+                      <button
+                        className="bg-gray-500/50 text-white p-2 rounded-full hover:bg-gray-500/70 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isMovieLiked(movie.id)) {
+                            unLike(movie.id);
+                          } else {
+                            onReaction(movie);
+                          }
+                        }}
+                      >
+                        {isMovieLiked(movie.id) ? (
+                          <FaHeart className="text-lg text-red-500" />
+                        ) : (
+                          <FaRegHeart className="text-lg" />
+                        )}
                       </button>
                       <button className="bg-gray-500/50 text-white p-2 rounded-full hover:bg-gray-500/70 transition-colors ml-auto">
                         <IoChevronDown className="text-lg" />
