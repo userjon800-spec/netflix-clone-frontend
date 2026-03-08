@@ -12,6 +12,7 @@ import { IoBookmark, IoBookmarkOutline } from "react-icons/io5";
 import Loading from "./loading";
 import { LikedMovie, SavedMovie, Movie } from "@/types";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 export default function Trending() {
   const [trending, setTrending] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,6 +23,11 @@ export default function Trending() {
   const [savedMovies, setSavedMovies] = useState<number[]>([]);
   const router = useRouter();
   const API_KEY = process.env.NEXT_PUBLIC_TMDB_KEY_API as string;
+  const [userId, setUserId] = useState<string | null>(null);
+  useEffect(() => {
+    const id = localStorage.getItem("userId");
+    setUserId(id);
+  }, []);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -30,19 +36,22 @@ export default function Trending() {
           `https://api.themoviedb.org/3/trending/movie/day?api_key=${API_KEY}`,
         );
         setTrending(data.results || []);
-        const userId = localStorage.getItem("userId");
         if (userId) {
           const likedResponse = await axios.get(
-            `http://localhost:7800/api/liked-movies/${userId}`,
-            { withCredentials: true },
+            `http://localhost:7800/api/user-liked/${userId}`,
+            {
+              withCredentials: true,
+            },
           );
           const likedIds = likedResponse.data.map(
             (item: LikedMovie) => item.movieId,
           );
           setLikedMovies(likedIds);
           const savedResponse = await axios.get(
-            `http://localhost:7800/api/saved-movies/${userId}`,
-            { withCredentials: true },
+            `http://localhost:7800/api/user-saved/${userId}`,
+            {
+              withCredentials: true,
+            },
           );
           const savedIds = savedResponse.data.map(
             (item: SavedMovie) => item.movieId,
@@ -51,12 +60,17 @@ export default function Trending() {
         }
       } catch (error) {
         console.error(error);
+        toast.error("Failed to load movies");
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, [API_KEY]);
+    if (userId !== null) {
+      fetchData();
+    } else {
+      fetchData();
+    }
+  }, [API_KEY, userId]);
   const scroll = (direction: "left" | "right") => {
     if (carouselRef.current) {
       const scrollAmount = direction === "left" ? -200 : 200;
@@ -72,14 +86,16 @@ export default function Trending() {
     return "text-red-500";
   };
   const onLike = async (movie: Movie) => {
+    const currentUserId = localStorage.getItem("userId");
+    if (!currentUserId) {
+      toast.error("Please login to like movies");
+      router.push("/auth/signin");
+      return;
+    }
     try {
-      const userId = localStorage.getItem("userId");
-      if (!userId) {
-        return;
-      }
       const movieData = {
         ...movie,
-        userId: userId,
+        userId: currentUserId,
       };
       const liked = await axios.post(
         "http://localhost:7800/api/liked-movie",
@@ -88,68 +104,77 @@ export default function Trending() {
       );
       if (liked.status === 200) {
         setLikedMovies((prev) => [...prev, movie.id]);
+        toast.success("Added to liked movies");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      toast.error(error.response?.data?.message || "Failed to like movie");
     }
   };
   const unLike = async (movieId: number) => {
+    const currentUserId = localStorage.getItem("userId");
+    if (!currentUserId) return;
     try {
-      const userId = localStorage.getItem("userId");
-      if (!userId) return;
       const liked = await axios.delete(
         `http://localhost:7800/api/un-liked-movie/${movieId}`,
         {
-          data: { userId },
+          data: { userId: currentUserId },
           withCredentials: true,
         },
       );
       if (liked.status === 200) {
         setLikedMovies((prev) => prev.filter((id) => id !== movieId));
+        toast.success("Removed from liked movies");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      toast.error(error.response?.data?.message || "Failed to unlike movie");
     }
   };
   const onSave = async (movie: Movie) => {
+    const currentUserId = localStorage.getItem("userId");
+    if (!currentUserId) {
+      toast.error("Please login to save movies");
+      router.push("/auth/signin");
+      return;
+    }
     try {
-      const userId = localStorage.getItem("userId");
-      if (!userId) {
-        return;
-      }
       const movieData = {
         ...movie,
-        userId: userId,
+        userId: currentUserId,
       };
       const saved = await axios.post(
-        "http://localhost:7800/api/saved-movie",
+        `http://localhost:7800/api/saved-movie`,
         movieData,
         { withCredentials: true },
       );
-
       if (saved.status === 200) {
         setSavedMovies((prev) => [...prev, movie.id]);
+        toast.success("Added to saved movies");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      toast.error(error.response?.data?.message || "Failed to save movie");
     }
   };
   const unSave = async (movieId: number) => {
+    const currentUserId = localStorage.getItem("userId");
+    if (!currentUserId) return;
     try {
-      const userId = localStorage.getItem("userId");
-      if (!userId) return;
       const saved = await axios.delete(
         `http://localhost:7800/api/un-saved-movie/${movieId}`,
         {
-          data: { userId },
+          data: { userId: currentUserId },
           withCredentials: true,
         },
       );
       if (saved.status === 200) {
         setSavedMovies((prev) => prev.filter((id) => id !== movieId));
+        toast.success("Removed from saved movies");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      toast.error(error.response?.data?.message || "Failed to unsave movie");
     }
   };
   const isMovieLiked = (movieId: number) => {
@@ -157,6 +182,9 @@ export default function Trending() {
   };
   const isMovieSaved = (movieId: number) => {
     return savedMovies.includes(movieId);
+  };
+  const handlePlayClick = (movieId: number) => {
+    router.push(`/${movieId}`);
   };
   if (loading) return <Loading />;
   return (
@@ -175,12 +203,14 @@ export default function Trending() {
             <button
               onClick={() => scroll("left")}
               className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/80 text-white p-3 rounded-full transition-all duration-300 cursor-pointer"
+              aria-label="Scroll left"
             >
               <IoChevronBack className="text-2xl" />
             </button>
             <button
               onClick={() => scroll("right")}
               className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/80 text-white p-3 rounded-full transition-all duration-300 cursor-pointer"
+              aria-label="Scroll right"
             >
               <IoChevronForward className="text-2xl" />
             </button>
@@ -206,7 +236,7 @@ export default function Trending() {
                   className="object-cover transition-transform duration-300 group-hover/movie:scale-110"
                   sizes="200px"
                 />
-                <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent opacity-0 group-hover/movie:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent opacity-0 group-hover/movie:opacity-100 transition-opacity duration-300" />
                 {index < 10 && (
                   <div className="absolute top-2 left-2 bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded">
                     #{index + 1}
@@ -233,11 +263,15 @@ export default function Trending() {
                       {movie.title}
                     </h3>
                     <div className="flex items-center gap-2 mb-2">
-                      <button className="bg-white text-black p-2 rounded-full hover:bg-white/80 transition-colors">
-                        <IoPlay
-                          onClick={() => router.push(`/${movie.id}`)}
-                          className="text-lg"
-                        />
+                      <button
+                        className="bg-white text-black p-2 rounded-full hover:bg-white/80 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePlayClick(movie.id);
+                        }}
+                        aria-label="Play movie"
+                      >
+                        <IoPlay className="text-lg" />
                       </button>
                       <button
                         className="bg-gray-500/50 text-white p-2 rounded-full hover:bg-gray-500/70 transition-colors"
@@ -249,6 +283,9 @@ export default function Trending() {
                             onLike(movie);
                           }
                         }}
+                        aria-label={
+                          isMovieLiked(movie.id) ? "Unlike movie" : "Like movie"
+                        }
                       >
                         {isMovieLiked(movie.id) ? (
                           <FaHeart className="text-lg text-red-500" />
@@ -266,6 +303,9 @@ export default function Trending() {
                             onSave(movie);
                           }
                         }}
+                        aria-label={
+                          isMovieSaved(movie.id) ? "Unsave movie" : "Save movie"
+                        }
                       >
                         {isMovieSaved(movie.id) ? (
                           <IoBookmark className="text-lg text-yellow-500" />
@@ -273,7 +313,10 @@ export default function Trending() {
                           <IoBookmarkOutline className="text-lg" />
                         )}
                       </button>
-                      <button className="bg-gray-500/50 text-white p-2 rounded-full hover:bg-gray-500/70 transition-colors ml-auto">
+                      <button
+                        className="bg-gray-500/50 text-white p-2 rounded-full hover:bg-gray-500/70 transition-colors ml-auto"
+                        aria-label="More options"
+                      >
                         <IoChevronDown className="text-lg" />
                       </button>
                     </div>

@@ -105,7 +105,7 @@ export default function Popular() {
         )}
         <div
           ref={carouselRef}
-          className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+          className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {popular.map((movie, index) => (

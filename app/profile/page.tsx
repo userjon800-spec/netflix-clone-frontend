@@ -16,6 +16,7 @@ import {
   IoFilmOutline,
   IoBookmark,
 } from "react-icons/io5";
+import { UploadButton } from "@/utils/uploadthing";
 export default function ProfilePage() {
   const [user, setUser] = useState<User>();
   const [activeTab, setActiveTab] = useState("profile");
@@ -23,23 +24,29 @@ export default function ProfilePage() {
   const [savedMovies, setSavedMovies] = useState<any[]>([]);
   const [likedMovies, setLikedMovies] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [updatedAvatar, setUpdatedAvatar] = useState(false);
+  const userId = localStorage.getItem("userId")
   useEffect(() => {
     const id = localStorage.getItem("userId");
     axios
       .get(`http://localhost:7800/api/user/${id}`, { withCredentials: true })
       .then(({ data }) => setUser(data))
       .catch((err) => console.error(err));
-  }, []);
+  }, [updatedAvatar]);
   useEffect(() => {
     axios
-      .get("http://localhost:7800/api/user-liked", { withCredentials: true })
+      .get(`http://localhost:7800/api/user-liked/${userId}`, {
+        withCredentials: true,
+      })
       .then(({ data }) => setLikedMovies(data))
       .catch((err) => console.error(err));
     axios
-      .get("http://localhost:7800/api/user-saved", { withCredentials: true })
+      .get(`http://localhost:7800/api/user-saved/${userId}`, {
+        withCredentials: true,
+      })
       .then(({ data }) => setSavedMovies(data))
       .catch((err) => console.error(err));
-  }, []);
+  }, [userId]);
   const onReset = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const datas = new FormData(e.currentTarget);
@@ -139,7 +146,29 @@ export default function ProfilePage() {
               )}
             </div>
             <button className="absolute bottom-0 right-0 bg-red-600 p-2 rounded-full hover:bg-red-700 transition-colors">
-              <IoCameraOutline className="text-white text-lg" />
+              <UploadButton
+                className="absolute w-32 h-32 top-[-112.2px] -left-28 opacity-0"
+                endpoint="imageUploader"
+                onClientUploadComplete={(res) => {
+                  const url = res[0].ufsUrl;
+                  axios
+                    .put(
+                      "http://localhost:7800/api/user-avatar",
+                      { url },
+                      { withCredentials: true },
+                    )
+                    .then((res) => {
+                      if (res.status === 200) {
+                        toast.success(res.data.message);
+                        setUpdatedAvatar(true);
+                      }
+                    })
+                    .catch((err) => toast.error(`ERROR! ${err.message}`));
+                }}
+                onUploadError={(error: Error) => {
+                  toast.error(`ERROR! ${error.message}`);
+                }}
+              />
             </button>
           </div>
           <div className="flex-1">

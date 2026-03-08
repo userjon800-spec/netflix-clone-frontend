@@ -11,17 +11,12 @@ import {
 import { FaUserCircle } from "react-icons/fa";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import { User } from "@/types";
 interface Util {
   title: string;
   menu: string | null;
   path?: string;
 }
-type User = {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-};
 export default function MenuBar() {
   const [toggle, setToggle] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -70,12 +65,20 @@ export default function MenuBar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
-      setToggle(false);
-      setSearchQuery("");
+    searchQuery.trim()
+    try {
+      if (searchQuery.length<3) {
+        return toast.error("Filmni topish uchun ma'lumot kam")
+      }
+      if (searchQuery.trim()) {
+        const safeReg = searchQuery.trim().replace(/\s+/g, ' ').replace(/[^\p{L}\p{N}\s'-]/gu, '')
+        const safeQuery = encodeURIComponent(safeReg)
+        router.push(`/search/${safeQuery}`)
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
   const logout = async () => {
@@ -191,7 +194,7 @@ export default function MenuBar() {
                   Profile
                 </Link>
                 <Link
-                  href="/"
+                  href="/profile"
                   className="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-800 transition-colors"
                 >
                   Account

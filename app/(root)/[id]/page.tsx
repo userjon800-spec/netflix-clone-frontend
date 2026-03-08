@@ -15,6 +15,7 @@ import {
 import { FaImdb } from "react-icons/fa";
 import Loading from "@/components/loading";
 import { MovieDetails } from "@/types";
+import Link from "next/link";
 export default function MoviePage() {
   const params = useParams();
   const id = params.id as string;
@@ -42,12 +43,39 @@ export default function MoviePage() {
     fetchMovie();
   }, [id, API_KEY]);
   if (loading) return <Loading />;
-  if (!movie)
+  if (!movie) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p>Movie not found</p>
+      <div className="min-h-screen bg-black text-white">
+        <MenuBar />
+        <div className="flex flex-col items-center justify-center px-4 py-24 min-h-[calc(100vh-80px)]">
+          <div className="mb-8 text-8xl animate-bounce">🎬</div>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center">
+            <span className="bg-linear-to-r from-red-600 to-red-400 bg-clip-text text-transparent">
+              Oops! Movie Missing
+            </span>
+          </h1>
+          <p className="text-gray-400 text-lg mb-8 text-center max-w-md">
+            Looks like this movie has escaped our library. But don't worry, we
+            have thousands of other great titles waiting for you!
+          </p>
+          <div className="flex gap-4">
+            <Link
+              href="/"
+              className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+            >
+              Back to Home
+            </Link>
+            <Link
+              href="/"
+              className="px-6 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors"
+            >
+              Browse Trending
+            </Link>
+          </div>
+        </div>
       </div>
     );
+  }
   const trailer =
     movie.videos.results.find(
       (video) =>
