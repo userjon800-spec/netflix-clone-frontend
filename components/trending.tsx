@@ -5,17 +5,13 @@ import {
   IoChevronForward,
   IoChevronBack,
   IoPlay,
-  IoAdd,
   IoChevronDown,
 } from "react-icons/io5";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+import { IoBookmark, IoBookmarkOutline } from "react-icons/io5";
 import Loading from "./loading";
-import { Movie } from "@/types";
-interface LikedMovie {
-  id: number;
-  userId?: string;
-  movieId: number;
-}
+import { LikedMovie, SavedMovie, Movie } from "@/types";
+import { useRouter } from "next/navigation";
 export default function Trending() {
   const [trending, setTrending] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,12 +19,15 @@ export default function Trending() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [showControls, setShowControls] = useState(false);
   const [likedMovies, setLikedMovies] = useState<number[]>([]);
+  const [savedMovies, setSavedMovies] = useState<number[]>([]);
+  const router = useRouter();
+  const API_KEY = process.env.NEXT_PUBLIC_TMDB_KEY_API as string;
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         const { data } = await axios.get(
-          "https://api.themoviedb.org/3/trending/movie/day?api_key=45b668b102b231b5c4b6bc26aad2da2e",
+          `https://api.themoviedb.org/3/trending/movie/day?api_key=${API_KEY}`,
         );
         setTrending(data.results || []);
         const userId = localStorage.getItem("userId");
@@ -41,6 +40,14 @@ export default function Trending() {
             (item: LikedMovie) => item.movieId,
           );
           setLikedMovies(likedIds);
+          const savedResponse = await axios.get(
+            `http://localhost:7800/api/saved-movies/${userId}`,
+            { withCredentials: true },
+          );
+          const savedIds = savedResponse.data.map(
+            (item: SavedMovie) => item.movieId,
+          );
+          setSavedMovies(savedIds);
         }
       } catch (error) {
         console.error(error);
@@ -49,7 +56,7 @@ export default function Trending() {
       }
     };
     fetchData();
-  }, []);
+  }, [API_KEY]);
   const scroll = (direction: "left" | "right") => {
     if (carouselRef.current) {
       const scrollAmount = direction === "left" ? -200 : 200;
@@ -64,7 +71,7 @@ export default function Trending() {
     if (rating >= 6) return "text-yellow-500";
     return "text-red-500";
   };
-  const onReaction = async (movie: Movie) => {
+  const onLike = async (movie: Movie) => {
     try {
       const userId = localStorage.getItem("userId");
       if (!userId) {
@@ -74,12 +81,12 @@ export default function Trending() {
         ...movie,
         userId: userId,
       };
-      const response = await axios.post(
+      const liked = await axios.post(
         "http://localhost:7800/api/liked-movie",
         movieData,
         { withCredentials: true },
       );
-      if (response.status === 200) {
+      if (liked.status === 200) {
         setLikedMovies((prev) => [...prev, movie.id]);
       }
     } catch (error) {
@@ -90,15 +97,56 @@ export default function Trending() {
     try {
       const userId = localStorage.getItem("userId");
       if (!userId) return;
-      const response = await axios.delete(
+      const liked = await axios.delete(
         `http://localhost:7800/api/un-liked-movie/${movieId}`,
         {
           data: { userId },
           withCredentials: true,
         },
       );
-      if (response.status === 200) {
+      if (liked.status === 200) {
         setLikedMovies((prev) => prev.filter((id) => id !== movieId));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const onSave = async (movie: Movie) => {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        return;
+      }
+      const movieData = {
+        ...movie,
+        userId: userId,
+      };
+      const saved = await axios.post(
+        "http://localhost:7800/api/saved-movie",
+        movieData,
+        { withCredentials: true },
+      );
+
+      if (saved.status === 200) {
+        setSavedMovies((prev) => [...prev, movie.id]);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const unSave = async (movieId: number) => {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return;
+      const saved = await axios.delete(
+        `http://localhost:7800/api/un-saved-movie/${movieId}`,
+        {
+          data: { userId },
+          withCredentials: true,
+        },
+      );
+      if (saved.status === 200) {
+        setSavedMovies((prev) => prev.filter((id) => id !== movieId));
       }
     } catch (error) {
       console.error(error);
@@ -106,6 +154,9 @@ export default function Trending() {
   };
   const isMovieLiked = (movieId: number) => {
     return likedMovies.includes(movieId);
+  };
+  const isMovieSaved = (movieId: number) => {
+    return savedMovies.includes(movieId);
   };
   if (loading) return <Loading />;
   return (
@@ -120,20 +171,20 @@ export default function Trending() {
         onMouseLeave={() => setShowControls(false)}
       >
         {showControls && (
-          <button
-            onClick={() => scroll("left")}
-            className="absolute -left-3.75 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/80 text-white p-3 rounded-full transition-all duration-300 -ml-4 cursor-pointer"
-          >
-            <IoChevronBack className="text-2xl" />
-          </button>
-        )}
-        {showControls && (
-          <button
-            onClick={() => scroll("right")}
-            className="absolute -right-3.75 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/80 text-white p-3 rounded-full transition-all duration-300 -mr-4 cursor-pointer"
-          >
-            <IoChevronForward className="text-2xl" />
-          </button>
+          <>
+            <button
+              onClick={() => scroll("left")}
+              className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/80 text-white p-3 rounded-full transition-all duration-300 cursor-pointer"
+            >
+              <IoChevronBack className="text-2xl" />
+            </button>
+            <button
+              onClick={() => scroll("right")}
+              className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/80 text-white p-3 rounded-full transition-all duration-300 cursor-pointer"
+            >
+              <IoChevronForward className="text-2xl" />
+            </button>
+          </>
         )}
         <div
           ref={carouselRef}
@@ -167,21 +218,26 @@ export default function Trending() {
                   {getRatingPercentage(movie.vote_average)}%
                 </div>
                 {isMovieLiked(movie.id) && (
-                  <div className="absolute bottom-2 left-2 text-red-500">
-                    <FaHeart className="text-lg" />
+                  <div className="absolute bottom-2 left-2">
+                    <FaHeart className="text-lg text-red-500 drop-shadow-lg" />
+                  </div>
+                )}
+                {isMovieSaved(movie.id) && (
+                  <div className="absolute bottom-2 right-2">
+                    <IoBookmark className="text-lg text-yellow-500 drop-shadow-lg" />
                   </div>
                 )}
                 {hoveredMovie === movie.id && (
-                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black to-transparent">
+                  <div className="absolute inset-x-0 bottom-0 p-4 bg-linear-to-t from-black to-transparent">
                     <h3 className="text-white font-bold text-sm mb-2 line-clamp-1">
                       {movie.title}
                     </h3>
                     <div className="flex items-center gap-2 mb-2">
                       <button className="bg-white text-black p-2 rounded-full hover:bg-white/80 transition-colors">
-                        <IoPlay className="text-lg" />
-                      </button>
-                      <button className="bg-gray-500/50 text-white p-2 rounded-full hover:bg-gray-500/70 transition-colors">
-                        <IoAdd className="text-lg" />
+                        <IoPlay
+                          onClick={() => router.push(`/${movie.id}`)}
+                          className="text-lg"
+                        />
                       </button>
                       <button
                         className="bg-gray-500/50 text-white p-2 rounded-full hover:bg-gray-500/70 transition-colors"
@@ -190,7 +246,7 @@ export default function Trending() {
                           if (isMovieLiked(movie.id)) {
                             unLike(movie.id);
                           } else {
-                            onReaction(movie);
+                            onLike(movie);
                           }
                         }}
                       >
@@ -198,6 +254,23 @@ export default function Trending() {
                           <FaHeart className="text-lg text-red-500" />
                         ) : (
                           <FaRegHeart className="text-lg" />
+                        )}
+                      </button>
+                      <button
+                        className="bg-gray-500/50 text-white p-2 rounded-full hover:bg-gray-500/70 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isMovieSaved(movie.id)) {
+                            unSave(movie.id);
+                          } else {
+                            onSave(movie);
+                          }
+                        }}
+                      >
+                        {isMovieSaved(movie.id) ? (
+                          <IoBookmark className="text-lg text-yellow-500" />
+                        ) : (
+                          <IoBookmarkOutline className="text-lg" />
                         )}
                       </button>
                       <button className="bg-gray-500/50 text-white p-2 rounded-full hover:bg-gray-500/70 transition-colors ml-auto">

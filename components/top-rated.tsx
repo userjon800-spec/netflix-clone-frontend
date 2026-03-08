@@ -13,21 +13,8 @@ import {
   IoFilmOutline,
 } from "react-icons/io5";
 import Loading from "./loading";
-interface Movie {
-  id: number;
-  title: string;
-  original_title: string;
-  backdrop_path: string;
-  poster_path: string;
-  overview: string;
-  release_date: string;
-  vote_average: number;
-  vote_count: number;
-  popularity: number;
-  genre_ids: number[];
-  adult: boolean;
-  media_type?: string;
-}
+import { Movie } from "@/types";
+import { useRouter } from "next/navigation";
 export default function TopRated() {
   const [topRated, setTopRated] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,12 +22,14 @@ export default function TopRated() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [showControls, setShowControls] = useState(false);
   const [selectedGenre, _] = useState<string>("all");
+  const router = useRouter();
+  const API_KEY = process.env.NEXT_PUBLIC_TMDB_KEY_API as string;
   useEffect(() => {
     const fetchTopRated = async () => {
       try {
         setLoading(true);
         const { data } = await axios.get(
-          "https://api.themoviedb.org/3/movie/top_rated?api_key=45b668b102b231b5c4b6bc26aad2da2e&language=en-US&page=1",
+          `https://api.themoviedb.org/3/movie/top_rated?api_key=${API_KEY}&language=en-US&page=1`,
         );
         setTopRated(data.results || []);
       } catch (error) {
@@ -50,7 +39,7 @@ export default function TopRated() {
       }
     };
     fetchTopRated();
-  }, []);
+  }, [API_KEY]);
   const scroll = (direction: "left" | "right") => {
     if (carouselRef.current) {
       const scrollAmount = direction === "left" ? -400 : 400;
@@ -175,7 +164,10 @@ export default function TopRated() {
                     </h3>
                     <div className="flex items-center gap-2 mb-2">
                       <button className="bg-white text-black p-2 rounded-full hover:bg-white/80 transition-colors">
-                        <IoPlay className="text-lg" />
+                        <IoPlay
+                          onClick={() => router.push(`/${movie.id}`)}
+                          className="text-lg"
+                        />
                       </button>
                       <button className="bg-gray-500/50 text-white p-2 rounded-full hover:bg-gray-500/70 transition-colors">
                         <IoAdd className="text-lg" />
