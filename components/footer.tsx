@@ -2,7 +2,7 @@ import Link from "next/link";
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   return (
-    <footer className="bg-black w-full z-999">
+    <footer className="bg-black w-full z-50 relative">
       <div className="max-w-380 mx-auto px-4 md:px-8 lg:px-16 py-8 md:py-10 lg:py-12">
         <div className="mb-6 md:mb-8">
           <h2 className="text-[#b3b3b3] text-base md:text-lg font-normal hover:text-white transition-colors">
@@ -66,7 +66,7 @@ export default function Footer() {
           </div>
           <div className="flex flex-col space-y-3">
             <Link 
-              href="/account" 
+              href="/profile" 
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"
             >
               Account
@@ -104,7 +104,7 @@ export default function Footer() {
               Terms of Use
             </Link>
             <Link 
-              href="/contact-us" 
+              href="https://t.me/Xamdamb0yev" 
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"
             >
               Contact Us

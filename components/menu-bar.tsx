@@ -1,3 +1,4 @@
+'use client'
 import { navUtil } from "@/utils";
 import axios from "axios";
 import Image from "next/image";
@@ -99,7 +100,7 @@ export default function MenuBar() {
   return (
     <div
       className={`fixed top-0 max-w-380 w-full my-1.5 h-fit z-50 transition-colors duration-300 ${
-        isScrolled ? "bg-black" : "bg-linear-to-b from-black/70 to-transparent"
+        isScrolled ? "bg-black" : "bg-linear-to-b from-black/10 to-transparent"
       }`}
     >
       <div className="px-16 py-2 flex items-center justify-between max-md:px-4">
@@ -116,13 +117,13 @@ export default function MenuBar() {
           </div>
           <div className="hidden md:flex items-center gap-5">
             {navUtil.map((item: Util) => (
-              <a
+              <Link
                 key={item.title}
-                href={item.path || "#"}
+                href={item.menu || "#"}
                 className="text-sm text-gray-200 hover:text-white transition-colors font-medium"
               >
                 {item.title}
-              </a>
+              </Link>
             ))}
           </div>
         </div>
@@ -182,7 +183,7 @@ export default function MenuBar() {
               />
             </div>
             {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-black/95 border border-gray-800 rounded-sm py-2 shadow-xl">
+              <div className="absolute right-0 mt-2 w-48 bg-black/95 border z-50 border-gray-800 rounded-sm py-2 shadow-xl">
                 <div className="px-4 py-2 border-b border-gray-800">
                   <p className="text-sm text-white font-medium">{user?.name}</p>
                   <p className="text-xs text-gray-400">{user?.email}</p>
@@ -194,10 +195,10 @@ export default function MenuBar() {
                   Profile
                 </Link>
                 <Link
-                  href="/profile"
+                  href="/help"
                   className="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-800 transition-colors"
                 >
-                  Account
+                  Help
                 </Link>
                 <button
                   onClick={logout}

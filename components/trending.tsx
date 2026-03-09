@@ -21,6 +21,8 @@ export default function Trending() {
   const [showControls, setShowControls] = useState(false);
   const [likedMovies, setLikedMovies] = useState<number[]>([]);
   const [savedMovies, setSavedMovies] = useState<number[]>([]);
+  const [like, setLike] = useState([]);
+  const [saveMovie, setSaveMovie] = useState([]);
   const router = useRouter();
   const API_KEY = process.env.NEXT_PUBLIC_TMDB_KEY_API as string;
   const [userId, setUserId] = useState<string | null>(null);
@@ -28,6 +30,17 @@ export default function Trending() {
     const id = localStorage.getItem("userId");
     setUserId(id);
   }, []);
+  useEffect(() => {
+    if (!userId) return;
+    axios
+      .get(`http://localhost:7800/api/user-liked/${userId}`)
+      .then(({ data }) => setLike(data))
+      .catch((err) => console.error(err));
+    axios
+      .get(`http://localhost:7800/api/user-saved/${userId}`)
+      .then(({ data }) => setSaveMovie(data))
+      .catch((err) => console.error(err));
+  }, [userId]);
   useEffect(() => {
     const fetchData = async () => {
       try {

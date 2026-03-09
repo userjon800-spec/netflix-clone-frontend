@@ -45,7 +45,7 @@ export default function MoviePage() {
   if (loading) return <Loading />;
   if (!movie) {
     return (
-      <div className="min-h-screen bg-black text-white">
+      <div className="min-h-screen bg-black border border-white text-white">
         <MenuBar />
         <div className="flex flex-col items-center justify-center px-4 py-24 min-h-[calc(100vh-80px)]">
           <div className="mb-8 text-8xl animate-bounce">🎬</div>

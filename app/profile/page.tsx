@@ -15,6 +15,7 @@ import {
   IoTimeOutline,
   IoFilmOutline,
   IoBookmark,
+  IoLockOpenOutline,
 } from "react-icons/io5";
 import { UploadButton } from "@/utils/uploadthing";
 export default function ProfilePage() {
@@ -25,7 +26,7 @@ export default function ProfilePage() {
   const [likedMovies, setLikedMovies] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [updatedAvatar, setUpdatedAvatar] = useState(false);
-  const userId = localStorage.getItem("userId")
+  const userId = localStorage.getItem("userId");
   useEffect(() => {
     const id = localStorage.getItem("userId");
     axios
@@ -124,8 +125,31 @@ export default function ProfilePage() {
       toast.error(error.response?.data?.message || "Nimadir xato ketdi");
     }
   };
+  const handleSetPassword = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    if (formData.get("password") !== formData.get("confirm-password")) {
+      toast.error("Parollarni to'g'ri kiriting");
+    }
+    try {
+      const data = await axios.put(
+        `http://localhost:7800/api/user-set-pass/${userId}`,
+        { password: formData.get("password") },
+        { withCredentials: true },
+      );
+      console.log(data);
+      if (data.status === 200) {
+        toast.success(data.data.message);
+        setTimeout(() => window.location.reload(), 1500);
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Nimadir xato ketdi");
+    }
+  };
+  console.log(user);
+  
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen border border-black bg-black text-white">
       <MenuBar />
       <div className="max-w-380 mx-auto px-4 md:px-8 pt-24 pb-16">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-8">
@@ -468,7 +492,78 @@ export default function ProfilePage() {
           )}
           {activeTab === "security" && (
             <div className="space-y-6">
-              {!user?.resetPass && (
+              
+              {!user?.password && (
+                <>
+                  <div className="bg-gray-900/50 rounded-lg p-6 border border-yellow-600/30">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-10 h-10 bg-yellow-600/20 rounded-full flex items-center justify-center">
+                        <IoLockOpenOutline className="text-yellow-500 text-xl" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-white">
+                        Set Password
+                      </h3>
+                    </div>
+                    <form
+                      onSubmit={handleSetPassword}
+                      className="max-w-md space-y-5"
+                    >
+                      <div className="space-y-2">
+                        <label
+                          htmlFor="new-password"
+                          className="text-sm text-gray-300 block"
+                        >
+                          New Password
+                        </label>
+                        <input
+                          type="password"
+                          id="new-password"
+                          className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-gray-700 focus:border-yellow-500 focus:outline-none transition-colors"
+                          placeholder="Enter new password"
+                          required
+                          name="password"
+                          minLength={6}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label
+                          htmlFor="confirm-password"
+                          className="text-sm text-gray-300 block"
+                        >
+                          Confirm Password
+                        </label>
+                        <input
+                          type="password"
+                          id="confirm-password"
+                          className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-gray-700 focus:border-yellow-500 focus:outline-none transition-colors"
+                          placeholder="Confirm new password"
+                          required
+                          name="confirm-password"
+                          minLength={6}
+                        />
+                      </div>
+                      <div className="bg-gray-800/50 p-4 rounded-md space-y-2">
+                        <p className="text-sm text-gray-300">
+                          Password requirements:
+                        </p>
+                        <ul className="text-xs text-gray-400 space-y-1 list-disc pl-4">
+                          <li>At least 6 characters long</li>
+                          <li>Include at least one number</li>
+                          <li>Include at least one uppercase letter</li>
+                          <li>Include at least one lowercase letter</li>
+                        </ul>
+                      </div>
+                      <button
+                        type="submit"
+                        className="w-full px-6 py-3 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors font-medium"
+                      >
+                        Set Password
+                      </button>
+                    </form>
+                  </div>
+                </>
+              )}
+              {!user?.resetPass && user?.password && (
                 <div className="bg-gray-900/50 rounded-lg p-6">
                   <h3 className="text-xl font-semibold mb-6">Reset Password</h3>
                   <form onSubmit={onReset} className="max-w-md space-y-6">
@@ -512,85 +607,92 @@ export default function ProfilePage() {
                   </form>
                 </div>
               )}
-              <div className="bg-gray-900/50 rounded-lg p-6">
-                <h3 className="text-xl font-semibold mb-6">Change Password</h3>
-                <form onSubmit={updatePassword} className="max-w-md space-y-5">
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="current-password"
-                      id="current-password"
-                      className="text-sm text-gray-300 block"
-                    >
-                      Current Password
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="password"
-                        name="currentPassword"
-                        id="current-password"
-                        className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-transparent focus:border-white/30 focus:outline-none transition-colors"
-                        placeholder="Enter current password"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="new-password"
-                      className="text-sm text-gray-300 block"
-                    >
-                      New Password
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="password"
-                        name="newPassword"
-                        id="new-password"
-                        className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-transparent focus:border-white/30 focus:outline-none transition-colors"
-                        placeholder="Enter new password"
-                        required
-                        minLength={6}
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="confirm-password"
-                      className="text-sm text-gray-300 block"
-                    >
-                      Confirm New Password
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="password"
-                        name="confirmPassword"
-                        id="confirm-password"
-                        className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-transparent focus:border-white/30 focus:outline-none transition-colors"
-                        placeholder="Confirm new password"
-                        required
-                        minLength={6}
-                      />
-                    </div>
-                  </div>
-                  <div className="bg-gray-800/50 p-4 rounded-md space-y-2">
-                    <p className="text-sm text-gray-300">
-                      Password requirements:
-                    </p>
-                    <ul className="text-xs text-gray-400 space-y-1 list-disc pl-4">
-                      <li>At least 6 characters long</li>
-                      <li>Include at least one number</li>
-                      <li>Include at least one uppercase letter</li>
-                      <li>Include at least one lowercase letter</li>
-                    </ul>
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium"
+              {!user?.password ? null : (
+                <div className="bg-gray-900/50 rounded-lg p-6">
+                  <h3 className="text-xl font-semibold mb-6">
+                    Change Password
+                  </h3>
+                  <form
+                    onSubmit={updatePassword}
+                    className="max-w-md space-y-5"
                   >
-                    Update Password
-                  </button>
-                </form>
-              </div>
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="current-password"
+                        id="current-password"
+                        className="text-sm text-gray-300 block"
+                      >
+                        Current Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="password"
+                          name="currentPassword"
+                          id="current-password"
+                          className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-transparent focus:border-white/30 focus:outline-none transition-colors"
+                          placeholder="Enter current password"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="new-password"
+                        className="text-sm text-gray-300 block"
+                      >
+                        New Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="password"
+                          name="newPassword"
+                          id="new-password"
+                          className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-transparent focus:border-white/30 focus:outline-none transition-colors"
+                          placeholder="Enter new password"
+                          required
+                          minLength={6}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="confirm-password"
+                        className="text-sm text-gray-300 block"
+                      >
+                        Confirm New Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="password"
+                          name="confirmPassword"
+                          id="confirm-password"
+                          className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-transparent focus:border-white/30 focus:outline-none transition-colors"
+                          placeholder="Confirm new password"
+                          required
+                          minLength={6}
+                        />
+                      </div>
+                    </div>
+                    <div className="bg-gray-800/50 p-4 rounded-md space-y-2">
+                      <p className="text-sm text-gray-300">
+                        Password requirements:
+                      </p>
+                      <ul className="text-xs text-gray-400 space-y-1 list-disc pl-4">
+                        <li>At least 6 characters long</li>
+                        <li>Include at least one number</li>
+                        <li>Include at least one uppercase letter</li>
+                        <li>Include at least one lowercase letter</li>
+                      </ul>
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-full px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium"
+                    >
+                      Update Password
+                    </button>
+                  </form>
+                </div>
+              )}
               <div className="bg-gray-900/50 rounded-lg p-6">
                 <h3 className="text-xl font-semibold mb-4">
                   Security Settings

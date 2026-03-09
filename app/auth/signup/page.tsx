@@ -7,6 +7,7 @@ import Footer from "@/components/footer";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
+import { FaGithub } from "react-icons/fa";
 export default function SignUp() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
@@ -44,7 +45,7 @@ export default function SignUp() {
     })();
   }, [router]);
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <div className="min-h-screen relative bg-black flex flex-col z-30">
       <Navbar />
       <div className="fixed inset-0 z-0">
         <Image
@@ -149,6 +150,10 @@ export default function SignUp() {
             <div className="mt-4 grid grid-cols-2 gap-3">
               <button
                 type="button"
+                onClick={() =>
+                  (window.location.href =
+                    "http://localhost:7800/api/auth/github")
+                }
                 className="flex items-center justify-center gap-2 px-4 py-2 bg-[#333333] text-white rounded-md hover:bg-[#404040] transition-colors text-sm"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -174,15 +179,13 @@ export default function SignUp() {
               <button
                 type="button"
                 className="flex items-center justify-center gap-2 px-4 py-2 bg-[#333333] text-white rounded-md hover:bg-[#404040] transition-colors text-sm"
+                onClick={() =>
+                  (window.location.href =
+                    "http://localhost:7800/api/auth/github")
+                }
               >
-                <svg
-                  className="w-5 h-5"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
-                </svg>
-                Facebook
+                <FaGithub className="w-5 h-5" />
+                GitHub
               </button>
             </div>
           </div>
