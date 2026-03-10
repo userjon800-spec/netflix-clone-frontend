@@ -13,98 +13,98 @@ export default function Footer() {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8 mb-8">
           <div className="flex flex-col space-y-3">
-            <Link 
-              href="/faq" 
+            <Link
+              href="/help"
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"
             >
               FAQ
             </Link>
-            <Link 
-              href="/investor-relations" 
+            <Link
+              href="/"
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"
             >
               Investor Relations
             </Link>
-            <Link 
-              href="/privacy" 
+            <Link
+              href="/"
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"
             >
               Privacy
             </Link>
-            <Link 
-              href="/speed-test" 
+            <Link
+              href="/"
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"
             >
               Speed Test
             </Link>
           </div>
           <div className="flex flex-col space-y-3">
-            <Link 
-              href="/help" 
+            <Link
+              href="/help"
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"
             >
               Help Centre
             </Link>
-            <Link 
-              href="/jobs" 
+            <Link
+              href="/about"
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"
             >
-              Jobs
+              About
             </Link>
-            <Link 
-              href="/cookie-preferences" 
+            <Link
+              href="/"
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"
             >
               Cookie Preferences
             </Link>
-            <Link 
-              href="/legal-notices" 
+            <Link
+              href="/"
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"
             >
               Legal Notices
             </Link>
           </div>
           <div className="flex flex-col space-y-3">
-            <Link 
-              href="/profile" 
+            <Link
+              href="/profile"
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"
             >
               Account
             </Link>
-            <Link 
-              href="/ways-to-watch" 
+            <Link
+              href="https://help.netflix.com/ru/contactus"
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"
             >
-              Ways to Watch
+              Netflix
             </Link>
-            <Link 
-              href="/corporate-information" 
+            <Link
+              href="/"
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"
             >
               Corporate Information
             </Link>
-            <Link 
-              href="/only-on-netflix" 
+            <Link
+              href="https://www.netflix.com/uz-ru/"
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"
             >
               Only on Netflix
             </Link>
           </div>
           <div className="flex flex-col space-y-3">
-            <Link 
-              href="/media-centre" 
+            <Link
+              href="/"
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"
             >
               Media Centre
             </Link>
-            <Link 
-              href="/terms-of-use" 
+            <Link
+              href="https://help.netflix.com/legal/termsofuse"
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"
             >
               Terms of Use
             </Link>
-            <Link 
-              href="https://t.me/Xamdamb0yev" 
+            <Link
+              href="https://t.me/Xamdamb0yev"
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"
             >
               Contact Us
@@ -112,19 +112,25 @@ export default function Footer() {
           </div>
         </div>
         <div className="mb-6">
-          <select 
+          <select
             className="bg-black text-[#b3b3b3] border border-[#4d4d4d] px-4 py-2 text-sm rounded hover:border-white transition-colors cursor-pointer outline-none focus:border-white"
             aria-label="Language Selector"
           >
-            <option value="en" className="bg-black text-white">English</option>
-            <option value="ru" className="bg-black text-white">Russian</option>
-            <option value="uz" className="bg-black text-white">Uzbek</option>
+            <option value="en" className="bg-black text-white">
+              English
+            </option>
+            <option value="ru" className="bg-black text-white">
+              Russian
+            </option>
+            <option value="uz" className="bg-black text-white">
+              Uzbek
+            </option>
           </select>
         </div>
         <div className="border-t border-[#4d4d4d] pt-6 mt-4">
           <div className="text-center">
-            <Link 
-              href="https://t.me/Xamdamb0yev" 
+            <Link
+              href="https://t.me/Xamdamb0yev"
               target="_blank"
               rel="noopener noreferrer"
               className="text-[#3b3b8d] text-sm md:text-base font-medium hover:text-[#4b4bb5] transition-colors inline-block mb-2"
@@ -132,7 +138,8 @@ export default function Footer() {
               Developed with ❤️ by Javohir
             </Link>
             <p className="text-[#b3b3b3] text-xs md:text-sm">
-              © Copyright {currentYear} | Designed & Developed by Javohir Xamdamboyev | All Rights Reserved.
+              © Copyright {currentYear} | Designed & Developed by Javohir
+              Xamdamboyev | All Rights Reserved.
             </p>
           </div>
         </div>

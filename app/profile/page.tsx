@@ -1,5 +1,6 @@
 "use client";
 import MenuBar from "@/components/menu-bar";
+import MovieCard from "@/components/movie-card";
 import { User } from "@/types";
 import axios from "axios";
 import { FormEvent, useEffect, useState } from "react";
@@ -146,8 +147,23 @@ export default function ProfilePage() {
       toast.error(error.response?.data?.message || "Nimadir xato ketdi");
     }
   };
-  console.log(user);
-  
+
+  // Like va Save funksiyalari
+  const handleLike = async (movie: any) => {
+    // Like qilish funksiyasi
+  };
+
+  const handleUnlike = async (movieId: number) => {
+    // Likeni olib tashlash
+  };
+
+  const handleSave = async (movie: any) => {
+    // Save qilish
+  };
+
+  const handleUnsave = async (movieId: number) => {
+    // Saveni olib tashlash
+  };
   return (
     <div className="min-h-screen border border-black bg-black text-white">
       <MenuBar />
@@ -161,7 +177,7 @@ export default function ProfilePage() {
                   alt={user.name}
                   width={128}
                   height={128}
-                  className="object-cover"
+                  className="w-full h-full object-cover rounded-full"
                 />
               ) : (
                 <span className="text-4xl md:text-5xl font-bold text-white">
@@ -169,31 +185,36 @@ export default function ProfilePage() {
                 </span>
               )}
             </div>
-            <button className="absolute bottom-0 right-0 bg-red-600 p-2 rounded-full hover:bg-red-700 transition-colors">
-              <UploadButton
-                className="absolute w-32 h-32 top-[-112.2px] -left-28 opacity-0"
-                endpoint="imageUploader"
-                onClientUploadComplete={(res) => {
-                  const url = res[0].ufsUrl;
-                  axios
-                    .put(
-                      "http://localhost:7800/api/user-avatar",
-                      { url },
-                      { withCredentials: true },
-                    )
-                    .then((res) => {
-                      if (res.status === 200) {
-                        toast.success(res.data.message);
-                        setUpdatedAvatar(true);
-                      }
-                    })
-                    .catch((err) => toast.error(`ERROR! ${err.message}`));
-                }}
-                onUploadError={(error: Error) => {
-                  toast.error(`ERROR! ${error.message}`);
-                }}
-              />
-            </button>
+            <div className="absolute bottom-0 right-0">
+              <div className="relative">
+                <button className="bg-red-600 p-2 rounded-full hover:bg-red-700 transition-colors z-10 relative">
+                  <IoCameraOutline className="text-white text-lg" />
+                </button>
+                <UploadButton
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                  endpoint="imageUploader"
+                  onClientUploadComplete={(res) => {
+                    const url = res[0].ufsUrl;
+                    axios
+                      .put(
+                        "http://localhost:7800/api/user-avatar",
+                        { url },
+                        { withCredentials: true },
+                      )
+                      .then((res) => {
+                        if (res.status === 200) {
+                          toast.success(res.data.message);
+                          setUpdatedAvatar(true);
+                        }
+                      })
+                      .catch((err) => toast.error(`ERROR! ${err.message}`));
+                  }}
+                  onUploadError={(error: Error) => {
+                    toast.error(`ERROR! ${error.message}`);
+                  }}
+                />
+              </div>
+            </div>
           </div>
           <div className="flex-1">
             <h1 className="text-3xl md:text-4xl font-bold mb-2">
@@ -302,85 +323,17 @@ export default function ProfilePage() {
               {savedMovies.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                   {savedMovies.map((movie) => (
-                    <div
+                    <MovieCard
                       key={movie.id}
-                      className="group cursor-pointer relative"
-                    >
-                      <div className="relative aspect-2/3 bg-gray-800 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-105 group-hover:z-10 group-hover:shadow-xl">
-                        <img
-                          src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                          alt={movie.title}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        <div className="absolute top-2 left-2 flex items-center gap-1">
-                          {/* Rating Badge */}
-                          <div className="bg-black/60 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-bold">
-                            <span
-                              className={
-                                movie.vote_average >= 7
-                                  ? "text-green-500"
-                                  : movie.vote_average >= 5
-                                    ? "text-yellow-500"
-                                    : "text-red-500"
-                              }
-                            >
-                              {Math.round(movie.vote_average * 10)}%
-                            </span>
-                          </div>
-                          <div className="bg-black/60 backdrop-blur-sm px-2 py-1 rounded-md text-xs text-gray-300">
-                            {new Date(movie.release_date).getFullYear()}
-                          </div>
-                          {movie.adult && (
-                            <div className="bg-red-600/80 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-bold text-white">
-                              18+
-                            </div>
-                          )}
-                        </div>
-                        <div className="absolute top-2 right-2">
-                          <div className="bg-yellow-500/20 backdrop-blur-sm p-1.5 rounded-full">
-                            <IoBookmark className="text-yellow-500 text-lg" />
-                          </div>
-                        </div>
-                        <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                          <h4 className="text-white font-semibold text-sm mb-1 line-clamp-1">
-                            {movie.title}
-                          </h4>
-                          <div className="flex items-center justify-between text-xs mb-2">
-                            <span className="text-gray-300">
-                              {movie.original_language?.toUpperCase()}
-                            </span>
-                            <span className="text-gray-400">
-                              {Math.round(movie.popularity)} views
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button className="flex-1 bg-white text-black text-xs py-1.5 rounded font-medium hover:bg-white/90 transition-colors">
-                              Play
-                            </button>
-                            <button
-                              className="p-1.5 bg-gray-800/80 rounded hover:bg-gray-700 transition-colors"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                              }}
-                            >
-                              <IoBookmark className="text-yellow-500 text-sm" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <p className="mt-2 text-sm text-gray-300 line-clamp-1 md:hidden">
-                        {movie.title}
-                      </p>
-                      <div className="flex items-center justify-between md:hidden">
-                        <p className="text-xs text-gray-500">
-                          {new Date(movie.release_date).getFullYear()}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {Math.round(movie.vote_average * 10)}% Match
-                        </p>
-                      </div>
-                    </div>
+                      movie={movie}
+                      isLiked={false}
+                      isSaved={true}
+                      onLike={handleLike}
+                      onSave={handleSave}
+                      onUnlike={handleUnlike}
+                      onUnsave={handleUnsave}
+                      layout="grid"
+                    />
                   ))}
                 </div>
               ) : (
@@ -405,73 +358,17 @@ export default function ProfilePage() {
               {likedMovies.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                   {likedMovies.map((movie) => (
-                    <div
-                      key={movie._id}
-                      className="group cursor-pointer relative"
-                    >
-                      <div className="relative aspect-2/3 bg-gray-800 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-105 group-hover:z-10 group-hover:shadow-xl">
-                        <Image
-                          src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                          alt={movie.title}
-                          width={500}
-                          height={100}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        <div className="absolute top-2 left-2 flex items-center gap-1">
-                          <div className="bg-black/60 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-bold">
-                            <span
-                              className={
-                                movie.vote_average >= 7
-                                  ? "text-green-500"
-                                  : movie.vote_average >= 5
-                                    ? "text-yellow-500"
-                                    : "text-red-500"
-                              }
-                            >
-                              {Math.round(movie.vote_average * 10)}%
-                            </span>
-                          </div>
-                          {movie.adult && (
-                            <div className="bg-red-600/80 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-bold text-white">
-                              18+
-                            </div>
-                          )}
-                        </div>
-                        <div className="absolute top-2 right-2">
-                          <div className="bg-red-500/20 backdrop-blur-sm p-1.5 rounded-full">
-                            <IoHeartOutline className="text-red-500 text-lg" />
-                          </div>
-                        </div>
-                        <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                          <h4 className="text-white font-semibold text-sm mb-1 line-clamp-1">
-                            {movie.title}
-                          </h4>
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-300">
-                              {new Date(movie.release_date).getFullYear()}
-                            </span>
-                            <span className="text-gray-400">
-                              {Math.round(movie.popularity)} views
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 mt-2">
-                            <button className="flex-1 bg-white text-black text-xs py-1.5 rounded font-medium hover:bg-white/90 transition-colors">
-                              Play
-                            </button>
-                            <button className="p-1.5 bg-gray-800/80 rounded hover:bg-gray-700 transition-colors">
-                              <IoHeartOutline className="text-white text-sm" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <p className="mt-2 text-sm text-gray-300 line-clamp-1 md:hidden">
-                        {movie.title}
-                      </p>
-                      <p className="text-xs text-gray-500 md:hidden">
-                        {new Date(movie.release_date).getFullYear()}
-                      </p>
-                    </div>
+                    <MovieCard
+                      key={movie.id}
+                      movie={movie}
+                      isLiked={true}
+                      isSaved={false}
+                      onLike={handleLike}
+                      onSave={handleSave}
+                      onUnlike={handleUnlike}
+                      onUnsave={handleUnsave}
+                      layout="grid"
+                    />
                   ))}
                 </div>
               ) : (
@@ -492,76 +389,73 @@ export default function ProfilePage() {
           )}
           {activeTab === "security" && (
             <div className="space-y-6">
-              
               {!user?.password && (
-                <>
-                  <div className="bg-gray-900/50 rounded-lg p-6 border border-yellow-600/30">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-10 h-10 bg-yellow-600/20 rounded-full flex items-center justify-center">
-                        <IoLockOpenOutline className="text-yellow-500 text-xl" />
-                      </div>
-                      <h3 className="text-xl font-semibold text-white">
-                        Set Password
-                      </h3>
+                <div className="bg-gray-900/50 rounded-lg p-6 border border-yellow-600/30">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-yellow-600/20 rounded-full flex items-center justify-center">
+                      <IoLockOpenOutline className="text-yellow-500 text-xl" />
                     </div>
-                    <form
-                      onSubmit={handleSetPassword}
-                      className="max-w-md space-y-5"
-                    >
-                      <div className="space-y-2">
-                        <label
-                          htmlFor="new-password"
-                          className="text-sm text-gray-300 block"
-                        >
-                          New Password
-                        </label>
-                        <input
-                          type="password"
-                          id="new-password"
-                          className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-gray-700 focus:border-yellow-500 focus:outline-none transition-colors"
-                          placeholder="Enter new password"
-                          required
-                          name="password"
-                          minLength={6}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label
-                          htmlFor="confirm-password"
-                          className="text-sm text-gray-300 block"
-                        >
-                          Confirm Password
-                        </label>
-                        <input
-                          type="password"
-                          id="confirm-password"
-                          className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-gray-700 focus:border-yellow-500 focus:outline-none transition-colors"
-                          placeholder="Confirm new password"
-                          required
-                          name="confirm-password"
-                          minLength={6}
-                        />
-                      </div>
-                      <div className="bg-gray-800/50 p-4 rounded-md space-y-2">
-                        <p className="text-sm text-gray-300">
-                          Password requirements:
-                        </p>
-                        <ul className="text-xs text-gray-400 space-y-1 list-disc pl-4">
-                          <li>At least 6 characters long</li>
-                          <li>Include at least one number</li>
-                          <li>Include at least one uppercase letter</li>
-                          <li>Include at least one lowercase letter</li>
-                        </ul>
-                      </div>
-                      <button
-                        type="submit"
-                        className="w-full px-6 py-3 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors font-medium"
-                      >
-                        Set Password
-                      </button>
-                    </form>
+                    <h3 className="text-xl font-semibold text-white">
+                      Set Password
+                    </h3>
                   </div>
-                </>
+                  <form
+                    onSubmit={handleSetPassword}
+                    className="max-w-md space-y-5"
+                  >
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="new-password"
+                        className="text-sm text-gray-300 block"
+                      >
+                        New Password
+                      </label>
+                      <input
+                        type="password"
+                        id="new-password"
+                        className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-gray-700 focus:border-yellow-500 focus:outline-none transition-colors"
+                        placeholder="Enter new password"
+                        required
+                        name="password"
+                        minLength={6}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="confirm-password"
+                        className="text-sm text-gray-300 block"
+                      >
+                        Confirm Password
+                      </label>
+                      <input
+                        type="password"
+                        id="confirm-password"
+                        className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-gray-700 focus:border-yellow-500 focus:outline-none transition-colors"
+                        placeholder="Confirm new password"
+                        required
+                        name="confirm-password"
+                        minLength={6}
+                      />
+                    </div>
+                    <div className="bg-gray-800/50 p-4 rounded-md space-y-2">
+                      <p className="text-sm text-gray-300">
+                        Password requirements:
+                      </p>
+                      <ul className="text-xs text-gray-400 space-y-1 list-disc pl-4">
+                        <li>At least 6 characters long</li>
+                        <li>Include at least one number</li>
+                        <li>Include at least one uppercase letter</li>
+                        <li>Include at least one lowercase letter</li>
+                      </ul>
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-full px-6 py-3 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors font-medium"
+                    >
+                      Set Password
+                    </button>
+                  </form>
+                </div>
               )}
               {!user?.resetPass && user?.password && (
                 <div className="bg-gray-900/50 rounded-lg p-6">
@@ -607,7 +501,7 @@ export default function ProfilePage() {
                   </form>
                 </div>
               )}
-              {!user?.password ? null : (
+              {user?.password && (
                 <div className="bg-gray-900/50 rounded-lg p-6">
                   <h3 className="text-xl font-semibold mb-6">
                     Change Password
@@ -619,21 +513,18 @@ export default function ProfilePage() {
                     <div className="space-y-2">
                       <label
                         htmlFor="current-password"
-                        id="current-password"
                         className="text-sm text-gray-300 block"
                       >
                         Current Password
                       </label>
-                      <div className="relative">
-                        <input
-                          type="password"
-                          name="currentPassword"
-                          id="current-password"
-                          className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-transparent focus:border-white/30 focus:outline-none transition-colors"
-                          placeholder="Enter current password"
-                          required
-                        />
-                      </div>
+                      <input
+                        type="password"
+                        name="currentPassword"
+                        id="current-password"
+                        className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-gray-700 focus:border-red-600 focus:outline-none transition-colors"
+                        placeholder="Enter current password"
+                        required
+                      />
                     </div>
                     <div className="space-y-2">
                       <label
@@ -642,17 +533,15 @@ export default function ProfilePage() {
                       >
                         New Password
                       </label>
-                      <div className="relative">
-                        <input
-                          type="password"
-                          name="newPassword"
-                          id="new-password"
-                          className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-transparent focus:border-white/30 focus:outline-none transition-colors"
-                          placeholder="Enter new password"
-                          required
-                          minLength={6}
-                        />
-                      </div>
+                      <input
+                        type="password"
+                        name="newPassword"
+                        id="new-password"
+                        className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-gray-700 focus:border-red-600 focus:outline-none transition-colors"
+                        placeholder="Enter new password"
+                        required
+                        minLength={6}
+                      />
                     </div>
                     <div className="space-y-2">
                       <label
@@ -661,17 +550,15 @@ export default function ProfilePage() {
                       >
                         Confirm New Password
                       </label>
-                      <div className="relative">
-                        <input
-                          type="password"
-                          name="confirmPassword"
-                          id="confirm-password"
-                          className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-transparent focus:border-white/30 focus:outline-none transition-colors"
-                          placeholder="Confirm new password"
-                          required
-                          minLength={6}
-                        />
-                      </div>
+                      <input
+                        type="password"
+                        name="confirmPassword"
+                        id="confirm-password"
+                        className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-gray-700 focus:border-red-600 focus:outline-none transition-colors"
+                        placeholder="Confirm new password"
+                        required
+                        minLength={6}
+                      />
                     </div>
                     <div className="bg-gray-800/50 p-4 rounded-md space-y-2">
                       <p className="text-sm text-gray-300">

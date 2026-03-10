@@ -2,6 +2,7 @@
 import MenuBar from "@/components/menu-bar";
 import { faqs } from "@/utils";
 import { useState } from "react";
+import { FaTelegramPlane } from "react-icons/fa";
 import {
   IoHelpBuoyOutline,
   IoMailOutline,
@@ -13,13 +14,12 @@ import {
   IoSearchOutline,
   IoCallOutline,
   IoLogoTwitter,
-  IoLogoFacebook,
   IoLogoInstagram,
-  IoLogoYoutube,
   IoBulbOutline,
   IoShieldCheckmarkOutline,
   IoVideocamOutline,
   IoPersonOutline,
+  IoLogoGithub,
 } from "react-icons/io5";
 export default function HelpPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -79,22 +79,28 @@ export default function HelpPage() {
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
-          <button className="p-6 bg-gray-900/50 rounded-lg border border-gray-800 hover:border-red-600 transition-all group">
+          <button
+            onClick={() => window.open("mailto:userjon800@gmail.com", "_blank")}
+            className="p-6 bg-gray-900/50 rounded-lg border cursor-pointer border-gray-800 hover:border-red-600 transition-all group"
+          >
             <IoMailOutline className="text-3xl text-gray-400 group-hover:text-red-600 mb-3" />
             <h3 className="font-medium mb-1">Email Us</h3>
-            <p className="text-sm text-gray-500">support@netflix-clone.com</p>
+            <p className="text-sm text-gray-500">userjon800@gmail.com</p>
           </button>
-          <button className="p-6 bg-gray-900/50 rounded-lg border border-gray-800 hover:border-red-600 transition-all group">
+          <button className="p-6 bg-gray-900/50 rounded-lg border cursor-pointer border-gray-800 hover:border-red-600 transition-all group">
             <IoChatbubbleOutline className="text-3xl text-gray-400 group-hover:text-red-600 mb-3" />
             <h3 className="font-medium mb-1">Live Chat</h3>
             <p className="text-sm text-gray-500">24/7 support</p>
           </button>
-          <button className="p-6 bg-gray-900/50 rounded-lg border border-gray-800 hover:border-red-600 transition-all group">
+          <button
+            onClick={() => window.open("tel:998933547854", "_blank")}
+            className="p-6 bg-gray-900/50 rounded-lg border cursor-pointer border-gray-800 hover:border-red-600 transition-all group"
+          >
             <IoCallOutline className="text-3xl text-gray-400 group-hover:text-red-600 mb-3" />
             <h3 className="font-medium mb-1">Call Us</h3>
-            <p className="text-sm text-gray-500">+1 (555) 123-4567</p>
+            <p className="text-sm text-gray-500">+998 93&#41;354-78-54</p>
           </button>
-          <button className="p-6 bg-gray-900/50 rounded-lg border border-gray-800 hover:border-red-600 transition-all group">
+          <button className="p-6 bg-gray-900/50 rounded-lg border cursor-pointer border-gray-800 hover:border-red-600 transition-all group">
             <IoDocumentTextOutline className="text-3xl text-gray-400 group-hover:text-red-600 mb-3" />
             <h3 className="font-medium mb-1">Documentation</h3>
             <p className="text-sm text-gray-500">API & guides</p>
@@ -261,16 +267,14 @@ export default function HelpPage() {
                 <IoMailOutline className="text-red-600 text-xl mt-1" />
                 <div>
                   <p className="font-medium">Email</p>
-                  <p className="text-sm text-gray-400">
-                    support@netflix-clone.com
-                  </p>
+                  <p className="text-sm text-gray-400">userjon800@gmail.com</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <IoCallOutline className="text-red-600 text-xl mt-1" />
                 <div>
                   <p className="font-medium">Phone</p>
-                  <p className="text-sm text-gray-400">+1 (555) 123-4567</p>
+                  <p className="text-sm text-gray-400">+998 93&#41;354-78-54</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -288,17 +292,37 @@ export default function HelpPage() {
               Stay updated with the latest news and features
             </p>
             <div className="flex gap-4">
-              <button className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors">
+              <button
+                onClick={() =>
+                  window.open("https://x.com/userjon800", "_blank")
+                }
+                className="w-12 h-12 cursor-pointer bg-gray-800 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+              >
                 <IoLogoTwitter className="text-xl" />
               </button>
-              <button className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors">
-                <IoLogoFacebook className="text-xl" />
+              <button
+                onClick={() =>
+                  window.open("https://github.com/userjon800-spec", "_blank")
+                }
+                className="w-12 h-12 cursor-pointer bg-gray-800 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+              >
+                <IoLogoGithub className="text-xl" />
               </button>
-              <button className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors">
+              <button
+                onClick={() =>
+                  window.open("https://www.instagram.com/j9v0h1r/", "_blank")
+                }
+                className="w-12 h-12 cursor-pointer bg-gray-800 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+              >
                 <IoLogoInstagram className="text-xl" />
               </button>
-              <button className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors">
-                <IoLogoYoutube className="text-xl" />
+              <button
+                onClick={() =>
+                  window.open("https://t.me/Xamdamb0yev", "_blank")
+                }
+                className="w-12 h-12 cursor-pointer bg-gray-800 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+              >
+                <FaTelegramPlane className="text-xl" />
               </button>
             </div>
           </div>

@@ -132,7 +132,6 @@ export default function MoviePage() {
           <div className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent" />
           <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent" />
         </div>
-
         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row gap-8 items-end">
@@ -211,6 +210,7 @@ export default function MoviePage() {
                 )}
               </div>
             </div>
+              <div>salom</div>
           </div>
         </div>
       </div>

@@ -1,12 +1,13 @@
-'use client';
+"use client";
 import MenuBar from "@/components/menu-bar";
 import MovieCard from "@/components/movie-card";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import Loading from "@/components/loading";
 import { IoCalendarOutline } from "react-icons/io5";
+import { Movie } from "@/types";
 export default function UpcomingPage() {
-  const [upcoming, setUpcoming] = useState<any[]>([]);
+  const [upcoming, setUpcoming] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [likedMovies, setLikedMovies] = useState<number[]>([]);
   const [savedMovies, setSavedMovies] = useState<number[]>([]);
@@ -14,10 +15,9 @@ export default function UpcomingPage() {
     const fetchUpcoming = async () => {
       try {
         setLoading(true);
-        const { data } = await axios.get(
-          `http://localhost:7800/api/user-upcoming`,
-          { withCredentials: true }
-        );
+        const { data } = await axios.get(`http://localhost:7800/api/user-api`, {
+          withCredentials: true,
+        });
         const results = data.upcomingJSON?.results || [];
         setUpcoming(results);
       } catch (error) {
@@ -33,13 +33,13 @@ export default function UpcomingPage() {
     if (!userId) return;
     Promise.all([
       axios.get(`http://localhost:7800/api/user-liked/${userId}`),
-      axios.get(`http://localhost:7800/api/user-saved/${userId}`)
+      axios.get(`http://localhost:7800/api/user-saved/${userId}`),
     ])
       .then(([likedRes, savedRes]) => {
         setLikedMovies(likedRes.data.map((item: any) => item.movieId));
         setSavedMovies(savedRes.data.map((item: any) => item.movieId));
       })
-      .catch(err => console.error(err));
+      .catch((err) => console.error(err));
   }, []);
   const handleLike = async (movie: any) => {
     const userId = localStorage.getItem("userId");
@@ -48,9 +48,9 @@ export default function UpcomingPage() {
       await axios.post(
         "http://localhost:7800/api/liked-movie",
         { ...movie, userId },
-        { withCredentials: true }
+        { withCredentials: true },
       );
-      setLikedMovies(prev => [...prev, movie.id]);
+      setLikedMovies((prev) => [...prev, movie.id]);
     } catch (error) {
       console.error(error);
     }
@@ -62,9 +62,9 @@ export default function UpcomingPage() {
       await axios.post(
         "http://localhost:7800/api/saved-movie",
         { ...movie, userId },
-        { withCredentials: true }
+        { withCredentials: true },
       );
-      setSavedMovies(prev => [...prev, movie.id]);
+      setSavedMovies((prev) => [...prev, movie.id]);
     } catch (error) {
       console.error(error);
     }
@@ -75,9 +75,9 @@ export default function UpcomingPage() {
     try {
       await axios.delete(
         `http://localhost:7800/api/un-liked-movie/${movieId}`,
-        { data: { userId }, withCredentials: true }
+        { data: { userId }, withCredentials: true },
       );
-      setLikedMovies(prev => prev.filter(id => id !== movieId));
+      setLikedMovies((prev) => prev.filter((id) => id !== movieId));
     } catch (error) {
       console.error(error);
     }
@@ -88,9 +88,9 @@ export default function UpcomingPage() {
     try {
       await axios.delete(
         `http://localhost:7800/api/un-saved-movie/${movieId}`,
-        { data: { userId }, withCredentials: true }
+        { data: { userId }, withCredentials: true },
       );
-      setSavedMovies(prev => prev.filter(id => id !== movieId));
+      setSavedMovies((prev) => prev.filter((id) => id !== movieId));
     } catch (error) {
       console.error(error);
     }
@@ -126,6 +126,7 @@ export default function UpcomingPage() {
                 onSave={handleSave}
                 onUnlike={handleUnlike}
                 onUnsave={handleUnsave}
+                layout="grid"
               />
             ))}
           </div>
@@ -137,9 +138,7 @@ export default function UpcomingPage() {
             <h3 className="text-xl text-gray-300 font-medium mb-2">
               No upcoming movies found
             </h3>
-            <p className="text-gray-500">
-              Check back later for new releases
-            </p>
+            <p className="text-gray-500">Check back later for new releases</p>
           </div>
         )}
       </div>

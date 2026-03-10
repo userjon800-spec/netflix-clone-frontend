@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import {
   IoSearch,
-  IoNotificationsOutline,
   IoChevronDown,
 } from "react-icons/io5";
 import { FaUserCircle } from "react-icons/fa";
@@ -99,7 +98,7 @@ export default function MenuBar() {
   };
   return (
     <div
-      className={`fixed top-0 max-w-380 w-full my-1.5 h-fit z-50 transition-colors duration-300 ${
+      className={`fixed -top-1.75 max-w-380 w-full my-1.5 h-fit z-50 transition-colors duration-300 ${
         isScrolled ? "bg-black" : "bg-linear-to-b from-black/10 to-transparent"
       }`}
     >
@@ -157,13 +156,12 @@ export default function MenuBar() {
               </form>
             )}
           </div>
-          <IoNotificationsOutline className="text-2xl text-gray-200 hover:text-white cursor-pointer transition-colors hidden md:block" />
           <div className="relative" ref={profileRef}>
             <div
               className="flex items-center gap-2 cursor-pointer group"
               onClick={() => setShowProfileMenu(!showProfileMenu)}
             >
-              <div className="w-8 h-8 rounded-sm overflow-hidden bg-red-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-sm overflow-hidden bg-transparent flex items-center justify-center">
                 {user?.avatar ? (
                   <Image
                     width={32}
@@ -193,6 +191,12 @@ export default function MenuBar() {
                   className="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-800 transition-colors"
                 >
                   Profile
+                </Link>
+                <Link
+                  href="/about"
+                  className="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-800 transition-colors"
+                >
+                  About
                 </Link>
                 <Link
                   href="/help"

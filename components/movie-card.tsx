@@ -10,6 +10,7 @@ import {
   IoHeart,
   IoBookmark,
   IoCalendarOutline,
+  IoChevronDown,
 } from "react-icons/io5";
 interface MovieCardProps {
   movie: Movie;
@@ -21,6 +22,7 @@ interface MovieCardProps {
   onUnlike?: (movieId: number) => void;
   onUnsave?: (movieId: number) => void;
   showIndex?: boolean;
+  layout?: "grid" | "carousel";
 }
 export default function MovieCard({
   movie,
@@ -32,6 +34,7 @@ export default function MovieCard({
   onUnlike,
   onUnsave,
   showIndex = false,
+  layout = "grid",
 }: MovieCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const getRatingColor = (rating: number) => {
@@ -62,9 +65,11 @@ export default function MovieCard({
       onSave(movie);
     }
   };
+  const cardWidth = layout === "carousel" ? "min-w-50" : "";
+  const cardHeight = layout === "carousel" ? "h-75" : "";
   return (
     <div
-      className="relative group cursor-pointer"
+      className={`relative ${cardWidth} ${cardHeight} group cursor-pointer`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -83,7 +88,9 @@ export default function MovieCard({
           </div>
         )}
         <div
-          className={`absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-300 ${isHovered ? "opacity-100" : "opacity-0"}`}
+          className={`absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-300 ${
+            isHovered ? "opacity-100" : "opacity-0"
+          }`}
         />
         <div className="absolute top-2 left-2 flex items-center gap-1">
           {movie.vote_average > 0 && (
@@ -166,6 +173,14 @@ export default function MovieCard({
                   )}
                 </button>
               )}
+              {layout === "carousel" && (
+                <button
+                  className="bg-gray-500/50 text-white p-2 rounded-full hover:bg-gray-500/70 transition-colors ml-auto"
+                  aria-label="More options"
+                >
+                  <IoChevronDown className="text-lg" />
+                </button>
+              )}
             </div>
             <div className="flex items-center gap-2 text-xs">
               <span
@@ -180,14 +195,16 @@ export default function MovieCard({
           </div>
         )}
       </div>
-      <div className="md:hidden mt-2">
-        <p className="text-sm text-gray-300 line-clamp-1">
-          {movie.title || movie.original_title}
-        </p>
-        <p className="text-xs text-gray-500">
-          {formatYear(movie.release_date)}
-        </p>
-      </div>
+      {layout === "grid" && (
+        <div className="md:hidden mt-2">
+          <p className="text-sm text-gray-300 line-clamp-1">
+            {movie.title || movie.original_title}
+          </p>
+          <p className="text-xs text-gray-500">
+            {formatYear(movie.release_date)}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
