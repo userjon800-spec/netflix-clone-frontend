@@ -1,6 +1,26 @@
+"use client";
+import { BASE_URL } from "@/utils";
+import axios from "axios";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const router = useRouter();
+  const logout = async () => {
+    try {
+      const { data } = await axios.post(
+        `${BASE_URL}/api/logout`,
+        {},
+        { withCredentials: true },
+      );
+      toast.success(data.message);
+      localStorage.clear();
+      setTimeout(() => router.replace("/auth/signin"), 1500);
+    } catch (error) {
+      console.error(error);
+    }
+  };
   return (
     <footer className="bg-black w-full z-50 relative">
       <div className="max-w-380 mx-auto px-4 md:px-8 lg:px-16 py-8 md:py-10 lg:py-12">
@@ -90,13 +110,13 @@ export default function Footer() {
               Only on Netflix
             </Link>
           </div>
-          <div className="flex flex-col space-y-3">
-            <Link
-              href="/"
+          <div className="flex flex-col items-start space-y-3">
+            <button
+              onClick={logout}
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"
             >
-              Media Centre
-            </Link>
+              Sign Out
+            </button>
             <Link
               href="https://help.netflix.com/legal/termsofuse"
               className="text-[#b3b3b3] text-sm hover:text-white hover:underline transition-colors"

@@ -16,7 +16,50 @@ import { FaReact, FaNodeJs } from "react-icons/fa";
 import { BsTypescript } from "react-icons/bs";
 import { SiExpress, SiMongodb } from "react-icons/si";
 import { MdMovie } from "react-icons/md";
+import { description } from "@/utils";
 export default function AboutPage() {
+  const mainPart = [
+    {
+      name: "Next.js",
+      icon: <RiNextjsFill className="w-7.5 h-7.5" />,
+      color: "text-white",
+    },
+    {
+      name: "React",
+      icon: <FaReact className="w-7.5 h-7.5" />,
+      color: "text-blue-400",
+    },
+    {
+      name: "TypeScript",
+      icon: <BsTypescript className="w-7.5 h-7.5 text-[blue]" />,
+      color: "text-blue-500",
+    },
+    {
+      name: "Tailwind CSS",
+      icon: <RiTailwindCssFill className="text-[#38BDF8] w-7.5 h-7.5" />,
+      color: "text-cyan-400",
+    },
+    {
+      name: "Node.js",
+      icon: <FaNodeJs className="w-7.5 h-7.5 text-[#4B9642]" />,
+      color: "text-green-500",
+    },
+    {
+      name: "Express",
+      icon: <SiExpress className="w-7.5 h-7.5" />,
+      color: "text-gray-400",
+    },
+    {
+      name: "MongoDB",
+      icon: <SiMongodb className="w-7.5 h-7.5 text-[#4AA73C]" />,
+      color: "text-green-600",
+    },
+    {
+      name: "TMDB API",
+      icon: <MdMovie className="w-7.5 h-7.5 text-[#0EB5DF]" />,
+      color: "text-yellow-500",
+    },
+  ];
   return (
     <div className="min-h-screen bg-black text-white">
       <MenuBar />
@@ -124,50 +167,7 @@ export default function AboutPage() {
             Built With
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              {
-                name: "Next.js",
-                icon: <RiNextjsFill className="w-7.5 h-7.5" />,
-                color: "text-white",
-              },
-              {
-                name: "React",
-                icon: <FaReact className="w-7.5 h-7.5" />,
-                color: "text-blue-400",
-              },
-              {
-                name: "TypeScript",
-                icon: <BsTypescript className="w-7.5 h-7.5 text-[blue]" />,
-                color: "text-blue-500",
-              },
-              {
-                name: "Tailwind CSS",
-                icon: (
-                  <RiTailwindCssFill className="text-[#38BDF8] w-7.5 h-7.5" />
-                ),
-                color: "text-cyan-400",
-              },
-              {
-                name: "Node.js",
-                icon: <FaNodeJs className="w-7.5 h-7.5 text-[#4B9642]" />,
-                color: "text-green-500",
-              },
-              {
-                name: "Express",
-                icon: <SiExpress className="w-7.5 h-7.5" />,
-                color: "text-gray-400",
-              },
-              {
-                name: "MongoDB",
-                icon: <SiMongodb className="w-7.5 h-7.5 text-[#4AA73C]" />,
-                color: "text-green-600",
-              },
-              {
-                name: "TMDB API",
-                icon: <MdMovie className="w-7.5 h-7.5 text-[#0EB5DF]" />,
-                color: "text-yellow-500",
-              },
-            ].map((tech) => (
+            {mainPart.map((tech) => (
               <div
                 key={tech.name}
                 className="bg-gray-900/50 rounded-lg border border-gray-800 p-4 text-center hover:border-red-600 transition-colors group"
@@ -233,14 +233,7 @@ export default function AboutPage() {
             Coming Soon
           </h2>
           <div className="grid md:grid-cols-3 gap-4">
-            {[
-              { title: "User Reviews", desc: "Rate and review movies" },
-              { title: "Watchlist Sync", desc: "Sync across devices" },
-              { title: "Recommendations", desc: "AI-powered suggestions" },
-              { title: "Offline Mode", desc: "Download to watch later" },
-              { title: "Friends Activity", desc: "See what friends watch" },
-              { title: "Dark/Light Theme", desc: "Choose your preference" },
-            ].map((feature) => (
+            {description.map((feature) => (
               <div
                 key={feature.title}
                 className="bg-gray-900/50 rounded-lg border border-gray-800 p-4 hover:border-red-600 transition-colors"

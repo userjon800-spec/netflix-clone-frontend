@@ -11,6 +11,7 @@ import MovieCard from "./movie-card";
 import { Movie } from "@/types";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { API_KEY, BASE_URL } from "@/utils";
 export default function TopRated() {
   const [topRated, setTopRated] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,7 +20,6 @@ export default function TopRated() {
   const [likedMovies, setLikedMovies] = useState<number[]>([]);
   const [savedMovies, setSavedMovies] = useState<number[]>([]);
   const router = useRouter();
-  const API_KEY = process.env.NEXT_PUBLIC_TMDB_KEY_API as string;
   const [userId, setUserId] = useState<string | null>(null);
   useEffect(() => {
     const id = localStorage.getItem("userId");
@@ -35,10 +35,10 @@ export default function TopRated() {
         setTopRated(data.results || []);
         if (userId) {
           const [likedRes, savedRes] = await Promise.all([
-            axios.get(`http://localhost:7800/api/user-liked/${userId}`, {
+            axios.get(`${BASE_URL}/api/user-liked/${userId}`, {
               withCredentials: true,
             }),
-            axios.get(`http://localhost:7800/api/user-saved/${userId}`, {
+            axios.get(`${BASE_URL}/api/user-saved/${userId}`, {
               withCredentials: true,
             }),
           ]);
@@ -53,7 +53,7 @@ export default function TopRated() {
       }
     };
     fetchTopRated();
-  }, [API_KEY, userId]);
+  }, [userId]);
   const scroll = (direction: "left" | "right") => {
     if (carouselRef.current) {
       const scrollAmount = direction === "left" ? -400 : 400;
@@ -69,7 +69,7 @@ export default function TopRated() {
     }
     try {
       await axios.post(
-        "http://localhost:7800/api/liked-movie",
+        `${BASE_URL}/api/liked-movie`,
         { ...movie, userId: currentUserId },
         { withCredentials: true },
       );
@@ -84,7 +84,7 @@ export default function TopRated() {
     if (!currentUserId) return;
     try {
       await axios.delete(
-        `http://localhost:7800/api/un-liked-movie/${movieId}`,
+        `${BASE_URL}/api/un-liked-movie/${movieId}`,
         { data: { userId: currentUserId }, withCredentials: true },
       );
       setLikedMovies((prev) => prev.filter((id) => id !== movieId));
@@ -102,7 +102,7 @@ export default function TopRated() {
     }
     try {
       await axios.post(
-        "http://localhost:7800/api/saved-movie",
+        `${BASE_URL}/api/saved-movie`,
         { ...movie, userId: currentUserId },
         { withCredentials: true },
       );
@@ -117,7 +117,7 @@ export default function TopRated() {
     if (!currentUserId) return;
     try {
       await axios.delete(
-        `http://localhost:7800/api/un-saved-movie/${movieId}`,
+        `${BASE_URL}/api/un-saved-movie/${movieId}`,
         { data: { userId: currentUserId }, withCredentials: true },
       );
       setSavedMovies((prev) => prev.filter((id) => id !== movieId));

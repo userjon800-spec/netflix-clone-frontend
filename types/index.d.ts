@@ -29,14 +29,18 @@ export interface LikedMovie {
   movieId: number;
 }
 export interface User {
+  _id: string;
   name: string;
   email: string;
   password: string;
   avatar: string;
   resetPass?: number;
-  createdAt?: number;
-  updatedAt?: number;
-  _id: string;
+  role: string;
+  provider: string;
+  createdAt: string;
+  updatedAt: string;
+  likedMovie: string[];
+  savedMovie: string[];
 }
 export interface MovieDetails {
   id: number;

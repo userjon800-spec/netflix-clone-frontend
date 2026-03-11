@@ -7,15 +7,16 @@ import Image from "next/image";
 import {
   IoPlay,
   IoTimeOutline,
-  IoCalendarOutline,
   IoStarOutline,
   IoFilmOutline,
   IoPeopleOutline,
+  IoCalendarOutline,
 } from "react-icons/io5";
 import { FaImdb } from "react-icons/fa";
 import Loading from "@/components/loading";
 import { MovieDetails } from "@/types";
 import Link from "next/link";
+import { API_KEY } from "@/utils";
 export default function MoviePage() {
   const params = useParams();
   const id = params.id as string;
@@ -24,7 +25,6 @@ export default function MoviePage() {
   const [activeTab, setActiveTab] = useState<"about" | "cast" | "media">(
     "about",
   );
-  const API_KEY = process.env.NEXT_PUBLIC_TMDB_KEY_API as string;
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   useEffect(() => {
     const fetchMovie = async () => {
@@ -41,7 +41,7 @@ export default function MoviePage() {
       }
     };
     fetchMovie();
-  }, [id, API_KEY]);
+  }, [id]);
   if (loading) return <Loading />;
   if (!movie) {
     return (
@@ -133,8 +133,8 @@ export default function MoviePage() {
           <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent" />
         </div>
         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row gap-8 items-end">
+          <div className="max-w-7xl mx-auto relative">
+            <div className="flex flex-col md:flex-row gap-8 items-end relative">
               <div className="hidden md:block w-64 rounded-lg overflow-hidden shadow-2xl">
                 <Image
                   src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
@@ -210,7 +210,6 @@ export default function MoviePage() {
                 )}
               </div>
             </div>
-              <div>salom</div>
           </div>
         </div>
       </div>

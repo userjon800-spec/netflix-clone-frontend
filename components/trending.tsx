@@ -7,6 +7,7 @@ import MovieCard from "./movie-card";
 import { LikedMovie, SavedMovie, Movie } from "@/types";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { API_KEY, BASE_URL } from "@/utils";
 export default function Trending() {
   const [trending, setTrending] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,14 +16,11 @@ export default function Trending() {
   const [likedMovies, setLikedMovies] = useState<number[]>([]);
   const [savedMovies, setSavedMovies] = useState<number[]>([]);
   const router = useRouter();
-  const API_KEY = process.env.NEXT_PUBLIC_TMDB_KEY_API as string;
   const [userId, setUserId] = useState<string | null>(null);
-
   useEffect(() => {
     const id = localStorage.getItem("userId");
     setUserId(id);
   }, []);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -31,17 +29,15 @@ export default function Trending() {
           `https://api.themoviedb.org/3/trending/movie/day?api_key=${API_KEY}`,
         );
         setTrending(data.results || []);
-
         if (userId) {
           const [likedRes, savedRes] = await Promise.all([
-            axios.get(`http://localhost:7800/api/user-liked/${userId}`, {
+            axios.get(`${BASE_URL}/api/user-liked/${userId}`, {
               withCredentials: true,
             }),
-            axios.get(`http://localhost:7800/api/user-saved/${userId}`, {
+            axios.get(`${BASE_URL}/api/user-saved/${userId}`, {
               withCredentials: true,
             }),
           ]);
-
           setLikedMovies(likedRes.data.map((item: LikedMovie) => item.movieId));
           setSavedMovies(savedRes.data.map((item: SavedMovie) => item.movieId));
         }
@@ -52,17 +48,14 @@ export default function Trending() {
         setLoading(false);
       }
     };
-
     fetchData();
-  }, [API_KEY, userId]);
-
+  }, [userId]);
   const scroll = (direction: "left" | "right") => {
     if (carouselRef.current) {
       const scrollAmount = direction === "left" ? -200 : 200;
       carouselRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
-
   const handleLike = async (movie: Movie) => {
     const currentUserId = localStorage.getItem("userId");
     if (!currentUserId) {
@@ -70,10 +63,9 @@ export default function Trending() {
       router.push("/auth/signin");
       return;
     }
-
     try {
       await axios.post(
-        "http://localhost:7800/api/liked-movie",
+        `${BASE_URL}/api/liked-movie`,
         { ...movie, userId: currentUserId },
         { withCredentials: true },
       );
@@ -83,23 +75,20 @@ export default function Trending() {
       toast.error(error.response?.data?.message || "Failed to like movie");
     }
   };
-
   const handleUnlike = async (movieId: number) => {
     const currentUserId = localStorage.getItem("userId");
     if (!currentUserId) return;
-
     try {
-      await axios.delete(
-        `http://localhost:7800/api/un-liked-movie/${movieId}`,
-        { data: { userId: currentUserId }, withCredentials: true },
-      );
+      await axios.delete(`${BASE_URL}/api/un-liked-movie/${movieId}`, {
+        data: { userId: currentUserId },
+        withCredentials: true,
+      });
       setLikedMovies((prev) => prev.filter((id) => id !== movieId));
       toast.success("Removed from liked movies");
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to unlike movie");
     }
   };
-
   const handleSave = async (movie: Movie) => {
     const currentUserId = localStorage.getItem("userId");
     if (!currentUserId) {
@@ -107,10 +96,9 @@ export default function Trending() {
       router.push("/auth/signin");
       return;
     }
-
     try {
       await axios.post(
-        "http://localhost:7800/api/saved-movie",
+        `${BASE_URL}/api/saved-movie`,
         { ...movie, userId: currentUserId },
         { withCredentials: true },
       );
@@ -120,32 +108,27 @@ export default function Trending() {
       toast.error(error.response?.data?.message || "Failed to save movie");
     }
   };
-
   const handleUnsave = async (movieId: number) => {
     const currentUserId = localStorage.getItem("userId");
     if (!currentUserId) return;
-
     try {
-      await axios.delete(
-        `http://localhost:7800/api/un-saved-movie/${movieId}`,
-        { data: { userId: currentUserId }, withCredentials: true },
-      );
+      await axios.delete(`${BASE_URL}/api/un-saved-movie/${movieId}`, {
+        data: { userId: currentUserId },
+        withCredentials: true,
+      });
       setSavedMovies((prev) => prev.filter((id) => id !== movieId));
       toast.success("Removed from saved movies");
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to unsave movie");
     }
   };
-
   if (loading) return <Loading />;
-
   return (
     <div className="px-16 py-8 max-md:px-4 relative group max-w-380 my-5 mt-8">
       <h2 className="text-white text-2xl font-bold mb-4 flex items-center gap-2">
         Trending Now
         <span className="text-sm text-gray-400 font-normal">Updated daily</span>
       </h2>
-
       <div
         className="relative"
         onMouseEnter={() => setShowControls(true)}
@@ -169,7 +152,6 @@ export default function Trending() {
             </button>
           </>
         )}
-
         <div
           ref={carouselRef}
           className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth"

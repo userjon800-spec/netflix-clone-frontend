@@ -13,11 +13,11 @@ import {
 } from "react-icons/io5";
 import Loading from "@/components/loading";
 import { Movie } from "@/types";
+import { API_KEY } from "@/utils";
 export default function SearchPage() {
   const params = useParams();
   const router = useRouter();
   const query = params.params as string;
-  const API_KEY = process.env.NEXT_PUBLIC_TMDB_KEY_API;
   const [results, setResults] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalResults, setTotalResults] = useState(0);
@@ -42,7 +42,7 @@ export default function SearchPage() {
       }
     };
     searchMovies();
-  }, [query, API_KEY, page]);
+  }, [query, page]);
   const getRatingColor = (rating: number) => {
     if (rating >= 8) return "text-green-500";
     if (rating >= 6) return "text-yellow-500";

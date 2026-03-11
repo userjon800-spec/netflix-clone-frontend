@@ -12,6 +12,7 @@ import {
   IoInformationCircleOutline,
 } from "react-icons/io5";
 import { FaGithub } from "react-icons/fa";
+import { BASE_URL } from "@/utils";
 export default function SignIn() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
@@ -38,12 +39,14 @@ export default function SignIn() {
         setIsLoading(false);
         return;
       }
-      const { data, status } = await axios.post(
-        "http://localhost:7800/api/login",
-        body,
-        { withCredentials: true },
-      );
-      if (status === 200) {
+      const { data, status } = await axios.post(`${BASE_URL}/api/login`, body, {
+        withCredentials: true,
+      });
+      console.log(data);
+      if (data.user.role === "admin") {
+        router.push("/admin");
+        return;
+      }else if (status === 200) {
         toast.success(data.message || "Successfully signed in!");
         setTimeout(() => {
           router.push("/");
@@ -60,7 +63,7 @@ export default function SignIn() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("http://localhost:7800/api/me", {
+        const res = await fetch(`${BASE_URL}/api/me`, {
           credentials: "include",
         });
         if (res.ok) router.replace("/");
@@ -208,8 +211,7 @@ export default function SignIn() {
               <button
                 className="flex items-center justify-center gap-2 px-4 py-2 bg-[#333333] text-white rounded-md hover:bg-[#404040] transition-colors text-sm"
                 onClick={() =>
-                  (window.location.href =
-                    "http://localhost:7800/api/auth/github")
+                  (window.location.href = `${BASE_URL}/api/auth/github`)
                 }
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -235,8 +237,7 @@ export default function SignIn() {
               <button
                 className="flex items-center justify-center gap-2 px-4 py-2 bg-[#333333] text-white rounded-md hover:bg-[#404040] transition-colors text-sm"
                 onClick={() =>
-                  (window.location.href =
-                    "http://localhost:7800/api/auth/github")
+                  (window.location.href = `${BASE_URL}/api/auth/github`)
                 }
               >
                 <FaGithub className="w-5 h-5" />

@@ -1,8 +1,36 @@
-import React from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { IoHomeOutline, IoSearchOutline, IoFilmOutline, IoTrendingUpOutline } from 'react-icons/io5';
+"use client";
+import Link from "next/link";
+import Image from "next/image";
+import {
+  IoHomeOutline,
+  IoSearchOutline,
+  IoTrendingUpOutline,
+} from "react-icons/io5";
+import { useState } from "react";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 export default function NotFound() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    searchQuery.trim();
+    try {
+      if (searchQuery.length < 3) {
+        return toast.error("Filmni topish uchun ma'lumot kam");
+      }
+      if (searchQuery.trim()) {
+        const safeReg = searchQuery
+          .trim()
+          .replace(/\s+/g, " ")
+          .replace(/[^\p{L}\p{N}\s'-]/gu, "");
+        const safeQuery = encodeURIComponent(safeReg);
+        router.push(`/search/${safeQuery}`);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="absolute top-0 left-0 z-20 p-8">
@@ -40,7 +68,8 @@ export default function NotFound() {
           Lost your way?
         </h2>
         <p className="text-gray-400 text-lg mb-8 text-center max-w-md">
-          Sorry, we can't find that page. You'll find lots to explore on the home page.
+          Sorry, we can't find that page. You'll find lots to explore on the
+          home page.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
           <Link
@@ -69,7 +98,7 @@ export default function NotFound() {
               { name: "Drama", href: "/genre/drama" },
               { name: "Horror", href: "/genre/horror" },
               { name: "Sci-Fi", href: "/genre/sci-fi" },
-              { name: "Romance", href: "/genre/romance" }
+              { name: "Romance", href: "/genre/romance" },
             ].map((genre) => (
               <Link
                 key={genre.name}
@@ -85,14 +114,11 @@ export default function NotFound() {
           <p className="text-sm text-gray-500 mb-3 text-center">
             Or try searching for something:
           </p>
-          <form 
-            action="/search" 
-            method="GET"
-            className="relative"
-          >
+          <form onSubmit={handleSearch} method="GET" className="relative">
             <input
               type="text"
               name="query"
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search movies, TV shows..."
               className="w-full h-12 pl-12 pr-4 bg-gray-800 text-white rounded-md border border-gray-700 focus:border-red-600 focus:outline-none transition-colors"
               autoFocus

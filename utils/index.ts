@@ -10,7 +10,7 @@ export const faqs = [
     id: 1,
     question: "How do I reset my password?",
     answer:
-      "Go to Profile → Security → Change Password. If you forgot your password, click 'Forgot Password' on the login page.",
+      "Go to Profile → Security → Reset Password. From there, enter the 6-digit number that you remember and after resetting the password, log out of the account. In the Sign in section, click on Need help and from there click on reset password. Enter your email and 6-digit number and you will set a new password. Confirm the password and return to the sign in section and log in with that password.",
     category: "account",
   },
   {
@@ -52,7 +52,7 @@ export const faqs = [
     id: 7,
     question: "How do I report a problem with a movie?",
     answer:
-      "Use the feedback form below or contact us directly at support@netflix-clone.com",
+      "Use the feedback form below or contact us directly at userjon800@gmail.com. We appreciate your feedback and will address any issues promptly.",
     category: "technical",
   },
   {
@@ -63,3 +63,13 @@ export const faqs = [
     category: "technical",
   },
 ];
+export const description = [
+  { title: "User Reviews", desc: "Rate and review movies" },
+  { title: "Watchlist Sync", desc: "Sync across devices" },
+  { title: "Recommendations", desc: "AI-powered suggestions" },
+  { title: "Offline Mode", desc: "Download to watch later" },
+  { title: "Friends Activity", desc: "See what friends watch" },
+  { title: "Dark/Light Theme", desc: "Choose your preference" },
+];
+export const API_KEY = process.env.NEXT_PUBLIC_TMDB_KEY_API as string;
+export const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL as string;

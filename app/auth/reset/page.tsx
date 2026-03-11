@@ -1,6 +1,6 @@
 "use client";
-import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
+import { BASE_URL } from "@/utils";
 import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
@@ -39,10 +39,14 @@ export default function ResetPasswordPage() {
       return;
     }
     try {
-      const reset = await axios.post("http://localhost:7800/api/reset", {
-        email: emailValue,
-        reset: resetCode,
-      });
+      const reset = await axios.post(
+        `${BASE_URL}/api/reset`,
+        {
+          email: emailValue,
+          reset: resetCode,
+        },
+        { withCredentials: true },
+      );
       localStorage.setItem("userIds", reset.data.userId);
       setEmail(emailValue);
       if (reset.status === 200) {
@@ -72,10 +76,14 @@ export default function ResetPasswordPage() {
       return;
     }
     try {
-      const reset = await axios.post("http://localhost:7800/api/new-password", {
-        password: password,
-        id: localStorage.getItem("userIds"),
-      });
+      const reset = await axios.post(
+        `${BASE_URL}/api/new-password`,
+        {
+          password: password,
+          id: localStorage.getItem("userIds"),
+        },
+        { withCredentials: true },
+      );
       if (reset.status === 200) {
         toast.success(reset.data.message || "Password reset successfully!");
         localStorage.clear();

@@ -1,5 +1,5 @@
 'use client'
-import { navUtil } from "@/utils";
+import { BASE_URL, navUtil } from "@/utils";
 import axios from "axios";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -28,7 +28,7 @@ export default function MenuBar() {
   const profileRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     axios
-      .get("http://localhost:7800/api/me", { withCredentials: true })
+      .get(`${BASE_URL}/api/me`, { withCredentials: true })
       .then(({ data }) => {
         localStorage.setItem("userId", data.user._id);
         setUser(data.user);
@@ -84,7 +84,7 @@ export default function MenuBar() {
   const logout = async () => {
     try {
       const { data } = await axios.post(
-        "http://localhost:7800/api/logout",
+        `${BASE_URL}/api/logout`,
         {},
         { withCredentials: true },
       );

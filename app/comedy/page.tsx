@@ -13,7 +13,8 @@ import {
   IoStarOutline,
   IoTimeOutline,
 } from "react-icons/io5";
-import { FaLaughSquint, FaTheaterMasks } from "react-icons/fa";
+import { FaLaughSquint } from "react-icons/fa";
+import { BASE_URL } from "@/utils";
 export default function ComedyPage() {
   const [comedy, setComedy] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,7 +25,7 @@ export default function ComedyPage() {
     const fetchComedyMovies = async () => {
       try {
         setLoading(true);
-        const { data } = await axios.get(`http://localhost:7800/api/user-api`, {
+        const { data } = await axios.get(`${BASE_URL}/api/user-api`, {
           withCredentials: true,
         });
         const results = data.comedyJSON?.results || [];
@@ -41,8 +42,12 @@ export default function ComedyPage() {
     const userId = localStorage.getItem("userId");
     if (!userId) return;
     Promise.all([
-      axios.get(`http://localhost:7800/api/user-liked/${userId}`),
-      axios.get(`http://localhost:7800/api/user-saved/${userId}`),
+      axios.get(`${BASE_URL}/api/user-liked/${userId}`, {
+        withCredentials: true,
+      }),
+      axios.get(`${BASE_URL}/api/user-saved/${userId}`, {
+        withCredentials: true,
+      }),
     ])
       .then(([likedRes, savedRes]) => {
         setLikedMovies(likedRes.data.map((item: any) => item.movieId));
@@ -55,7 +60,7 @@ export default function ComedyPage() {
     if (!userId) return;
     try {
       await axios.post(
-        "http://localhost:7800/api/liked-movie",
+        `${BASE_URL}/api/liked-movie`,
         { ...movie, userId },
         { withCredentials: true },
       );
@@ -69,7 +74,7 @@ export default function ComedyPage() {
     if (!userId) return;
     try {
       await axios.post(
-        "http://localhost:7800/api/saved-movie",
+        `${BASE_URL}/api/saved-movie`,
         { ...movie, userId },
         { withCredentials: true },
       );
@@ -83,7 +88,7 @@ export default function ComedyPage() {
     if (!userId) return;
     try {
       await axios.delete(
-        `http://localhost:7800/api/un-liked-movie/${movieId}`,
+        `${BASE_URL}/api/un-liked-movie/${movieId}`,
         { data: { userId }, withCredentials: true },
       );
       setLikedMovies((prev) => prev.filter((id) => id !== movieId));
@@ -96,7 +101,7 @@ export default function ComedyPage() {
     if (!userId) return;
     try {
       await axios.delete(
-        `http://localhost:7800/api/un-saved-movie/${movieId}`,
+        `${BASE_URL}/api/un-saved-movie/${movieId}`,
         { data: { userId }, withCredentials: true },
       );
       setSavedMovies((prev) => prev.filter((id) => id !== movieId));

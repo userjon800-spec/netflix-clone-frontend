@@ -20,7 +20,11 @@ import {
   IoVideocamOutline,
   IoPersonOutline,
   IoLogoGithub,
+  IoCheckmarkCircle,
+  IoAlertCircleOutline,
 } from "react-icons/io5";
+import axios from "axios";
+import toast from "react-hot-toast";
 export default function HelpPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [rating, setRating] = useState(0);
@@ -30,6 +34,9 @@ export default function HelpPage() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [faqCategory, setFaqCategory] = useState("all");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+
   const categories = [
     { id: "all", name: "All", icon: IoDocumentTextOutline },
     { id: "account", name: "Account", icon: IoPersonOutline },
@@ -37,18 +44,104 @@ export default function HelpPage() {
     { id: "security", name: "Security", icon: IoShieldCheckmarkOutline },
     { id: "technical", name: "Technical", icon: IoBulbOutline },
   ];
+  const token = process.env.NEXT_PUBLIC_TOKEN_BOT as string;
+  const chatId = process.env.NEXT_PUBLIC_CHAT_ID as string;
   const filteredFaqs =
     faqCategory === "all"
       ? faqs
       : faqs.filter((faq) => faq.category === faqCategory);
-  const handleSubmitFeedback = (e: React.FormEvent) => {
+  const sendToTelegram = async (data: any) => {
+    const emoji: { [key: string]: string } = {
+      general: "📝",
+      bug: "🐛",
+      feature: "💡",
+      other: "❓",
+    };
+    const ratingStars = "⭐".repeat(data.rating) + "☆".repeat(5 - data.rating);
+    const messageText = `
+        ${emoji[data.feedbackType]} *New Feedback Received!*
+          *Type:* ${data.feedbackType.toUpperCase()}
+          *Name:* ${data.name || "Not provided"}
+          *Email:* ${data.email || "Not provided"}
+          *Rating:* ${ratingStars} (${data.rating}/5)
+                *Message:*
+              ${data.message}
+            📅 *Date:* ${new Date().toLocaleString()}
+    `;
+    const response = await axios.post(
+      `https://api.telegram.org/bot${token}/sendMessage`,
+      {
+        chat_id: chatId,
+        text: messageText,
+        parse_mode: "Markdown",
+      },
+    );
+    return response.data;
+  };
+  const handleSubmitFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Feedback yuborish funksiyasi - siz yozasiz
-    console.log({ name, email, message, feedbackType, rating });
+    if (!message.trim()) {
+      toast.error("Please enter your message");
+      return;
+    }
+    if (!email.trim()) {
+      toast.error("Please enter your email");
+      return;
+    }
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const feedbackData = {
+        name,
+        email,
+        message,
+        feedbackType,
+        rating,
+      };
+      await sendToTelegram(feedbackData);
+      toast.custom(
+        (t) => (
+          <div className="bg-green-600 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3">
+            <IoCheckmarkCircle className="text-2xl" />
+            <div>
+              <p className="font-medium">Thank you for your feedback!</p>
+              <p className="text-sm text-green-100">
+                We'll get back to you soon.
+              </p>
+            </div>
+          </div>
+        ),
+        { duration: 5000 },
+      );
+      setName("");
+      setEmail("");
+      setMessage("");
+      setRating(0);
+      setFeedbackType("general");
+      setSubmitSuccess(true);
+      setTimeout(() => setSubmitSuccess(false), 3000);
+    } catch (error) {
+      toast.custom(
+        (t) => (
+          <div className="bg-red-600 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3">
+            <IoAlertCircleOutline className="text-2xl" />
+            <div>
+              <p className="font-medium">Failed to send feedback</p>
+              <p className="text-sm text-red-100">Please try again later</p>
+            </div>
+          </div>
+        ),
+        { duration: 5000 },
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   const handleRatingClick = (value: number) => {
     setRating(value);
-    // Rating yuborish funksiyasi - siz yozasiz
   };
   return (
     <div className="min-h-screen bg-black text-white">
@@ -253,10 +346,24 @@ export default function HelpPage() {
             </div>
             <button
               type="submit"
-              className="px-8 py-3 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 transition-colors"
+              disabled={isSubmitting}
+              className="px-8 py-3 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              Send Feedback
+              {isSubmitting ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                "Send Feedback"
+              )}
             </button>
+            {submitSuccess && (
+              <div className="mt-4 flex items-center gap-2 text-green-500">
+                <IoCheckmarkCircle className="text-xl" />
+                <span className="text-sm">Sent to Telegram!</span>
+              </div>
+            )}
           </form>
         </div>
         <div className="grid md:grid-cols-2 gap-8">

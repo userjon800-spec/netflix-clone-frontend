@@ -3,11 +3,11 @@ import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 import { FaGithub } from "react-icons/fa";
+import { BASE_URL } from "@/utils";
 export default function SignUp() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
@@ -23,7 +23,7 @@ export default function SignUp() {
         password: formData.get("password"),
       };
       const data = await axios.post(
-        "http://localhost:7800/api/register",
+        `${BASE_URL}/api/register`,
         body,
         { withCredentials: true },
       );
@@ -38,7 +38,7 @@ export default function SignUp() {
   };
   useEffect(() => {
     (async () => {
-      const res = await fetch("http://localhost:7800/api/me", {
+      const res = await fetch(`${BASE_URL}/api/me`, {
         credentials: "include",
       });
       if (res.ok) router.replace("/");
@@ -152,7 +152,7 @@ export default function SignUp() {
                 type="button"
                 onClick={() =>
                   (window.location.href =
-                    "http://localhost:7800/api/auth/github")
+                    `${BASE_URL}/api/auth/github`)
                 }
                 className="flex items-center justify-center gap-2 px-4 py-2 bg-[#333333] text-white rounded-md hover:bg-[#404040] transition-colors text-sm"
               >
@@ -181,7 +181,7 @@ export default function SignUp() {
                 className="flex items-center justify-center gap-2 px-4 py-2 bg-[#333333] text-white rounded-md hover:bg-[#404040] transition-colors text-sm"
                 onClick={() =>
                   (window.location.href =
-                    "http://localhost:7800/api/auth/github")
+                    `${BASE_URL}/api/auth/github`)
                 }
               >
                 <FaGithub className="w-5 h-5" />

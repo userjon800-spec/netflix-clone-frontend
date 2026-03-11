@@ -19,6 +19,7 @@ import {
   IoLockOpenOutline,
 } from "react-icons/io5";
 import { UploadButton } from "@/utils/uploadthing";
+import { BASE_URL } from "@/utils";
 export default function ProfilePage() {
   const [user, setUser] = useState<User>();
   const [activeTab, setActiveTab] = useState("profile");
@@ -31,19 +32,19 @@ export default function ProfilePage() {
   useEffect(() => {
     const id = localStorage.getItem("userId");
     axios
-      .get(`http://localhost:7800/api/user/${id}`, { withCredentials: true })
+      .get(`${BASE_URL}/api/user/${id}`, { withCredentials: true })
       .then(({ data }) => setUser(data))
       .catch((err) => console.error(err));
   }, [updatedAvatar]);
   useEffect(() => {
     axios
-      .get(`http://localhost:7800/api/user-liked/${userId}`, {
+      .get(`${BASE_URL}/api/user-liked/${userId}`, {
         withCredentials: true,
       })
       .then(({ data }) => setLikedMovies(data))
       .catch((err) => console.error(err));
     axios
-      .get(`http://localhost:7800/api/user-saved/${userId}`, {
+      .get(`${BASE_URL}/api/user-saved/${userId}`, {
         withCredentials: true,
       })
       .then(({ data }) => setSavedMovies(data))
@@ -59,7 +60,7 @@ export default function ProfilePage() {
     }
     try {
       const { data } = await axios.post(
-        "http://localhost:7800/api/reset-pass",
+        `${BASE_URL}/api/reset-pass`,
         {
           resetPass: resetCode,
           id: localStorage.getItem("userId"),
@@ -93,11 +94,15 @@ export default function ProfilePage() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     try {
-      const reset = await axios.put("http://localhost:7800/api/user-update", {
-        name: formData.get("name"),
-        email: formData.get("email"),
-        id: localStorage.getItem("userId"),
-      });
+      const reset = await axios.put(
+        `${BASE_URL}/api/user-update`,
+        {
+          name: formData.get("name"),
+          email: formData.get("email"),
+          id: localStorage.getItem("userId"),
+        },
+        { withCredentials: true },
+      );
       if (reset.status === 202) {
         toast.success(reset.data.message);
         setTimeout(() => window.location.reload(), 1500);
@@ -113,11 +118,15 @@ export default function ProfilePage() {
       return toast.error("Yangi parolni to'g'ri kiriting");
     }
     try {
-      const reset = await axios.put("http://localhost:7800/api/user-pass", {
-        oldPass: formData.get("currentPassword"),
-        newPass: formData.get("newPassword"),
-        id: localStorage.getItem("userId"),
-      });
+      const reset = await axios.put(
+        `${BASE_URL}/api/user-pass`,
+        {
+          oldPass: formData.get("currentPassword"),
+          newPass: formData.get("newPassword"),
+          id: localStorage.getItem("userId"),
+        },
+        { withCredentials: true },
+      );
       if (reset.status === 202) {
         toast.success(reset.data.message);
         setTimeout(() => window.location.reload(), 1500);
@@ -134,11 +143,10 @@ export default function ProfilePage() {
     }
     try {
       const data = await axios.put(
-        `http://localhost:7800/api/user-set-pass/${userId}`,
+        `${BASE_URL}/api/user-set-pass/${userId}`,
         { password: formData.get("password") },
         { withCredentials: true },
       );
-      console.log(data);
       if (data.status === 200) {
         toast.success(data.data.message);
         setTimeout(() => window.location.reload(), 1500);
@@ -147,20 +155,16 @@ export default function ProfilePage() {
       toast.error(error.response?.data?.message || "Nimadir xato ketdi");
     }
   };
-
   // Like va Save funksiyalari
   const handleLike = async (movie: any) => {
     // Like qilish funksiyasi
   };
-
   const handleUnlike = async (movieId: number) => {
     // Likeni olib tashlash
   };
-
   const handleSave = async (movie: any) => {
     // Save qilish
   };
-
   const handleUnsave = async (movieId: number) => {
     // Saveni olib tashlash
   };
@@ -191,13 +195,13 @@ export default function ProfilePage() {
                   <IoCameraOutline className="text-white text-lg" />
                 </button>
                 <UploadButton
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                  className="absolute w-33 h-33 cursor-pointer -top-23.5 -left-23.5 rounded-2xl opacity-0 z-50"
                   endpoint="imageUploader"
                   onClientUploadComplete={(res) => {
                     const url = res[0].ufsUrl;
                     axios
                       .put(
-                        "http://localhost:7800/api/user-avatar",
+                        `${BASE_URL}/api/user-avatar`,
                         { url },
                         { withCredentials: true },
                       )

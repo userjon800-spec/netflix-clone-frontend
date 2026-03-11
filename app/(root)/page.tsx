@@ -3,6 +3,7 @@ import MenuBar from "@/components/menu-bar";
 import Popular from "@/components/popular";
 import TopRated from "@/components/top-rated";
 import Trending from "@/components/trending";
+import { BASE_URL } from "@/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -22,7 +23,7 @@ export default function Home() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("http://localhost:7800/api/me", {
+        const res = await fetch(`${BASE_URL}/api/me`, {
           credentials: "include",
         });
         if (!res.ok) {
