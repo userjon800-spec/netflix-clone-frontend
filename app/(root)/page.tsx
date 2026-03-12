@@ -101,7 +101,7 @@ export default function Home() {
     setShowReminder(false);
   };
   return (
-    <div className="bg-black min-h-screen relative">
+    <div className="bg-black relative flex flex-col items-center">
       {showReminder && !dontShowAgain && (
         <div className="fixed top-0 left-0 right-0 z-100 bg-[#181818] border-b border-[#333] shadow-lg">
           <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
