@@ -43,7 +43,7 @@ export default function HorrorPage() {
     fetchHorrorMovies();
   }, []);
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
+     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!userId) return;
     Promise.all([
       axios.get(`${BASE_URL}/api/user-liked/${userId}`,{
@@ -60,7 +60,7 @@ export default function HorrorPage() {
       .catch((err) => console.error(err));
   }, []);
   const handleLike = async (movie: Movie) => {
-    const userId = localStorage.getItem("userId");
+     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!userId) return;
     try {
       await axios.post(
@@ -74,7 +74,7 @@ export default function HorrorPage() {
     }
   };
   const handleSave = async (movie: Movie) => {
-    const userId = localStorage.getItem("userId");
+     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!userId) return;
     try {
       await axios.post(
@@ -88,7 +88,7 @@ export default function HorrorPage() {
     }
   };
   const handleUnlike = async (movieId: number) => {
-    const userId = localStorage.getItem("userId");
+     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!userId) return;
     try {
       await axios.delete(
@@ -101,7 +101,7 @@ export default function HorrorPage() {
     }
   };
   const handleUnsave = async (movieId: number) => {
-    const userId = localStorage.getItem("userId");
+     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!userId) return;
     try {
       await axios.delete(

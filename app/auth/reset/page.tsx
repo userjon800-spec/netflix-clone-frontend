@@ -47,7 +47,8 @@ export default function ResetPasswordPage() {
         },
         { withCredentials: true },
       );
-      localStorage.setItem("userIds", reset.data.userId);
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      typeof window !== "undefined" ? localStorage.setItem("userIds",reset.data.userId) : null;
       setEmail(emailValue);
       if (reset.status === 200) {
         toast.success("Code verified! Please set your new password");
@@ -80,7 +81,7 @@ export default function ResetPasswordPage() {
         `${BASE_URL}/api/new-password`,
         {
           password: password,
-          id: localStorage.getItem("userIds"),
+          id: typeof window !== "undefined" ? localStorage.getItem("userId") : null,
         },
         { withCredentials: true },
       );

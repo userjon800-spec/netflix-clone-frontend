@@ -18,7 +18,8 @@ export default function Trending() {
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
   useEffect(() => {
-    const id = localStorage.getItem("userId");
+    const id =
+      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     setUserId(id);
   }, []);
   useEffect(() => {
@@ -57,7 +58,8 @@ export default function Trending() {
     }
   };
   const handleLike = async (movie: Movie) => {
-    const currentUserId = localStorage.getItem("userId");
+    const currentUserId =
+      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!currentUserId) {
       toast.error("Please login to like movies");
       router.push("/auth/signin");
@@ -76,7 +78,8 @@ export default function Trending() {
     }
   };
   const handleUnlike = async (movieId: number) => {
-    const currentUserId = localStorage.getItem("userId");
+    const currentUserId =
+      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!currentUserId) return;
     try {
       await axios.delete(`${BASE_URL}/api/un-liked-movie/${movieId}`, {
@@ -90,7 +93,8 @@ export default function Trending() {
     }
   };
   const handleSave = async (movie: Movie) => {
-    const currentUserId = localStorage.getItem("userId");
+    const currentUserId =
+      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!currentUserId) {
       toast.error("Please login to save movies");
       router.push("/auth/signin");
@@ -109,7 +113,8 @@ export default function Trending() {
     }
   };
   const handleUnsave = async (movieId: number) => {
-    const currentUserId = localStorage.getItem("userId");
+    const currentUserId =
+      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!currentUserId) return;
     try {
       await axios.delete(`${BASE_URL}/api/un-saved-movie/${movieId}`, {

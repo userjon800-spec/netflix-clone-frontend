@@ -39,7 +39,7 @@ export default function ComedyPage() {
     fetchComedyMovies();
   }, []);
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
+     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!userId) return;
     Promise.all([
       axios.get(`${BASE_URL}/api/user-liked/${userId}`, {
@@ -56,7 +56,7 @@ export default function ComedyPage() {
       .catch((err) => console.error(err));
   }, []);
   const handleLike = async (movie: Movie) => {
-    const userId = localStorage.getItem("userId");
+     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!userId) return;
     try {
       await axios.post(
@@ -70,7 +70,7 @@ export default function ComedyPage() {
     }
   };
   const handleSave = async (movie: Movie) => {
-    const userId = localStorage.getItem("userId");
+     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!userId) return;
     try {
       await axios.post(
@@ -84,7 +84,7 @@ export default function ComedyPage() {
     }
   };
   const handleUnlike = async (movieId: number) => {
-    const userId = localStorage.getItem("userId");
+     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!userId) return;
     try {
       await axios.delete(
@@ -97,7 +97,7 @@ export default function ComedyPage() {
     }
   };
   const handleUnsave = async (movieId: number) => {
-    const userId = localStorage.getItem("userId");
+     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!userId) return;
     try {
       await axios.delete(

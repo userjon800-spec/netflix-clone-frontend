@@ -23,7 +23,7 @@ export default function Popular() {
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
   useEffect(() => {
-    const id = localStorage.getItem("userId");
+    const id = typeof window !== "undefined" ? localStorage.getItem("userId") : null
     setUserId(id);
   }, []);
   useEffect(() => {
@@ -66,7 +66,7 @@ export default function Popular() {
     return Math.round(pop).toString();
   };
   const handleLike = async (movie: Movie) => {
-    const currentUserId = localStorage.getItem("userId");
+    const currentUserId = typeof window !== "undefined" ? localStorage.getItem("userId") : null
     if (!currentUserId) {
       toast.error("Please login to like movies");
       router.push("/auth/signin");
@@ -85,7 +85,7 @@ export default function Popular() {
     }
   };
   const handleUnlike = async (movieId: number) => {
-    const currentUserId = localStorage.getItem("userId");
+    const currentUserId = typeof window !== "undefined" ? localStorage.getItem("userId") : null
     if (!currentUserId) return;
     try {
       await axios.delete(
@@ -99,7 +99,7 @@ export default function Popular() {
     }
   };
   const handleSave = async (movie: Movie) => {
-    const currentUserId = localStorage.getItem("userId");
+    const currentUserId = typeof window !== "undefined" ? localStorage.getItem("userId") : null
     if (!currentUserId) {
       toast.error("Please login to save movies");
       router.push("/auth/signin");
@@ -118,7 +118,7 @@ export default function Popular() {
     }
   };
   const handleUnsave = async (movieId: number) => {
-    const currentUserId = localStorage.getItem("userId");
+    const currentUserId = typeof window !== "undefined" ? localStorage.getItem("userId") : null
     if (!currentUserId) return;
     try {
       await axios.delete(

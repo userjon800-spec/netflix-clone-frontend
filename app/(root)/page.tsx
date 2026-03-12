@@ -33,7 +33,7 @@ export default function Home() {
         const { user } = await res.json();
         setUserEmail(user.email);
         const reminderHidden =
-          localStorage.getItem("hidePasswordReminder") === "true";
+          typeof window !== "undefined" ? localStorage.getItem("hidePasswordReminder") : null;
         if (!user.password && !reminderHidden) {
           setShowReminder(true);
           toast(
@@ -89,7 +89,8 @@ export default function Home() {
     })();
   }, [router]);
   const handleDontShowAgain = () => {
-    localStorage.setItem("hidePasswordReminder", "true");
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    typeof window !== "undefined" ? localStorage.setItem("hidePasswordReminder", 'true') : null;
     setDontShowAgain(true);
     setShowReminder(false);
     toast.success("Eslatma o'chirildi", {

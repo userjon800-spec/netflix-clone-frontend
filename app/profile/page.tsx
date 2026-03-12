@@ -28,9 +28,9 @@ export default function ProfilePage() {
   const [likedMovies, setLikedMovies] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [updatedAvatar, setUpdatedAvatar] = useState(false);
-  const userId = localStorage.getItem("userId");
+   const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
   useEffect(() => {
-    const id = localStorage.getItem("userId");
+    const id = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     axios
       .get(`${BASE_URL}/api/user/${id}`, { withCredentials: true })
       .then(({ data }) => setUser(data))
@@ -63,7 +63,7 @@ export default function ProfilePage() {
         `${BASE_URL}/api/reset-pass`,
         {
           resetPass: resetCode,
-          id: localStorage.getItem("userId"),
+          id: typeof window !== "undefined" ? localStorage.getItem("userId") : null
         },
         { withCredentials: true },
       );
@@ -99,7 +99,7 @@ export default function ProfilePage() {
         {
           name: formData.get("name"),
           email: formData.get("email"),
-          id: localStorage.getItem("userId"),
+          id: typeof window !== "undefined" ? localStorage.getItem("userId") : null
         },
         { withCredentials: true },
       );
@@ -123,7 +123,7 @@ export default function ProfilePage() {
         {
           oldPass: formData.get("currentPassword"),
           newPass: formData.get("newPassword"),
-          id: localStorage.getItem("userId"),
+          id: typeof window !== "undefined" ? localStorage.getItem("userId") : null
         },
         { withCredentials: true },
       );
