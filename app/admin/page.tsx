@@ -54,7 +54,7 @@ export default function AdminPage() {
             : 0,
         });
       })
-      .catch((err) => console.log(err))
+      .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, []);
   const formatDate = (dateString: string) => {

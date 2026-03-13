@@ -42,7 +42,6 @@ export default function SignIn() {
       const { data, status } = await axios.post(`${BASE_URL}/api/login`, body, {
         withCredentials: true,
       });
-      console.log(data);
       if (data.user.role === "admin") {
         router.push("/admin");
         return;
