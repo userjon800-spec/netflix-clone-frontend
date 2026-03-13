@@ -210,7 +210,7 @@ export default function SignIn() {
               <button
                 className="flex items-center justify-center gap-2 px-4 py-2 bg-[#333333] text-white rounded-md hover:bg-[#404040] transition-colors text-sm"
                 onClick={() =>
-                  (window.location.href = `${BASE_URL}/api/auth/github`)
+                  (window.location.href = `${BASE_URL}/api/auth/google`)
                 }
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">

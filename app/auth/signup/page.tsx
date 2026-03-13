@@ -152,7 +152,7 @@ export default function SignUp() {
                 type="button"
                 onClick={() =>
                   (window.location.href =
-                    `${BASE_URL}/api/auth/github`)
+                    `${BASE_URL}/api/auth/google`)
                 }
                 className="flex items-center justify-center gap-2 px-4 py-2 bg-[#333333] text-white rounded-md hover:bg-[#404040] transition-colors text-sm"
               >
