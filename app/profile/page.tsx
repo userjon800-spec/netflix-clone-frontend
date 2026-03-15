@@ -70,7 +70,7 @@ export default function ProfilePage() {
       toast.success(data.message || "Password reset successfully!");
       (e.target as HTMLFormElement).reset();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to reset password");
+      console.error(error.response?.data?.message || "Failed to reset password");
     }
   };
   const handleCodeChange = (index: number, value: string) => {
@@ -108,7 +108,7 @@ export default function ProfilePage() {
         setTimeout(() => window.location.reload(), 1500);
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Nimadir xato ketdi");
+      console.error(error.response?.data?.message || "Nimadir xato ketdi");
     }
   };
   const updatePassword = async (e: FormEvent<HTMLFormElement>) => {
@@ -132,7 +132,7 @@ export default function ProfilePage() {
         setTimeout(() => window.location.reload(), 1500);
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Nimadir xato ketdi");
+      console.error(error.response?.data?.message || "Nimadir xato ketdi");
     }
   };
   const handleSetPassword = async (e: FormEvent<HTMLFormElement>) => {
@@ -152,7 +152,7 @@ export default function ProfilePage() {
         setTimeout(() => window.location.reload(), 1500);
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Nimadir xato ketdi");
+      console.error(error.response?.data?.message || "Nimadir xato ketdi");
     }
   };
   // Like va Save funksiyalari
@@ -208,10 +208,11 @@ export default function ProfilePage() {
                       .then((res) => {
                         if (res.status === 200) {
                           toast.success(res.data.message);
+                          setTimeout(() => window.location.reload(), 1500);
                           setUpdatedAvatar(true);
                         }
                       })
-                      .catch((err) => toast.error(`ERROR! ${err.message}`));
+                      .catch((err) => console.error(`ERROR! ${err.message}`));
                   }}
                   onUploadError={(error: Error) => {
                     toast.error(`ERROR! ${error.message}`);

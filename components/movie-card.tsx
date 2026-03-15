@@ -1,8 +1,10 @@
 "use client";
 import { Movie } from "@/types";
+import { BASE_URL } from "@/utils";
+import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   IoPlay,
   IoHeartOutline,
@@ -36,7 +38,13 @@ export default function MovieCard({
   showIndex = false,
   layout = "grid",
 }: MovieCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
+  const [isHovered, _] = useState(true);
+  const [liked, setLiked] = useState<Movie[]>([]);
+  // const user = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("userId")!) : null
+  // useEffect(()=>{
+  //   axios.get(`${BASE_URL}/api/user-liked/${user}`,{withCredentials: true}).then(({data})=>setLiked(data)).catch((err)=>console.error(err))
+  // },[user])
+  // console.log(liked)
   const getRatingColor = (rating: number) => {
     if (rating >= 8) return "text-green-500";
     if (rating >= 6) return "text-yellow-500";
@@ -68,11 +76,7 @@ export default function MovieCard({
   const cardWidth = layout === "carousel" ? "min-w-50" : "";
   const cardHeight = layout === "carousel" ? "h-75" : "";
   return (
-    <div
-      className={`relative ${cardWidth} ${cardHeight} group cursor-pointer`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className={`relative ${cardWidth} ${cardHeight} group cursor-pointer`}>
       <div className="relative aspect-2/3 bg-gray-800 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-105 group-hover:z-10 group-hover:shadow-xl">
         {movie.poster_path ? (
           <Image

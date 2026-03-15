@@ -45,7 +45,7 @@ export default function SignIn() {
       if (data.user.role === "admin") {
         router.push("/admin");
         return;
-      }else if (status === 200) {
+      } else if (status === 200) {
         toast.success(data.message || "Successfully signed in!");
         setTimeout(() => {
           router.push("/");
@@ -54,7 +54,7 @@ export default function SignIn() {
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || "Invalid email or password";
-      toast.error(errorMessage);
+      console.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

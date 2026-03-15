@@ -22,11 +22,9 @@ export default function SignUp() {
         email: formData.get("email"),
         password: formData.get("password"),
       };
-      const data = await axios.post(
-        `${BASE_URL}/api/register`,
-        body,
-        { withCredentials: true },
-      );
+      const data = await axios.post(`${BASE_URL}/api/register`, body, {
+        withCredentials: true,
+      });
       if (data.status === 200) {
         router.push("/");
       }
@@ -151,8 +149,7 @@ export default function SignUp() {
               <button
                 type="button"
                 onClick={() =>
-                  (window.location.href =
-                    `${BASE_URL}/api/auth/google`)
+                  (window.location.href = `${BASE_URL}/api/auth/google`)
                 }
                 className="flex items-center justify-center gap-2 px-4 py-2 bg-[#333333] text-white rounded-md hover:bg-[#404040] transition-colors text-sm"
               >
@@ -180,8 +177,7 @@ export default function SignUp() {
                 type="button"
                 className="flex items-center justify-center gap-2 px-4 py-2 bg-[#333333] text-white rounded-md hover:bg-[#404040] transition-colors text-sm"
                 onClick={() =>
-                  (window.location.href =
-                    `${BASE_URL}/api/auth/github`)
+                  (window.location.href = `${BASE_URL}/api/auth/github`)
                 }
               >
                 <FaGithub className="w-5 h-5" />

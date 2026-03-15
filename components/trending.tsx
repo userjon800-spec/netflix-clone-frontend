@@ -44,7 +44,6 @@ export default function Trending() {
         }
       } catch (error) {
         console.error(error);
-        toast.error("Failed to load movies");
       } finally {
         setLoading(false);
       }
@@ -61,7 +60,7 @@ export default function Trending() {
     const currentUserId =
       typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!currentUserId) {
-      toast.error("Please login to like movies");
+      console.error("Please login to like movies");
       router.push("/auth/signin");
       return;
     }
@@ -72,9 +71,8 @@ export default function Trending() {
         { withCredentials: true },
       );
       setLikedMovies((prev) => [...prev, movie.id]);
-      toast.success("Added to liked movies");
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to like movie");
+      console.error(error.response?.data?.message || "Failed to like movie");
     }
   };
   const handleUnlike = async (movieId: number) => {
@@ -87,16 +85,15 @@ export default function Trending() {
         withCredentials: true,
       });
       setLikedMovies((prev) => prev.filter((id) => id !== movieId));
-      toast.success("Removed from liked movies");
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to unlike movie");
+      console.error(error.response?.data?.message || "Failed to unlike movie");
     }
   };
   const handleSave = async (movie: Movie) => {
     const currentUserId =
       typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!currentUserId) {
-      toast.error("Please login to save movies");
+      console.error("Please login to save movies");
       router.push("/auth/signin");
       return;
     }
@@ -109,7 +106,7 @@ export default function Trending() {
       setSavedMovies((prev) => [...prev, movie.id]);
       toast.success("Added to saved movies");
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to save movie");
+      console.error(error.response?.data?.message || "Failed to save movie");
     }
   };
   const handleUnsave = async (movieId: number) => {
@@ -124,7 +121,7 @@ export default function Trending() {
       setSavedMovies((prev) => prev.filter((id) => id !== movieId));
       toast.success("Removed from saved movies");
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to unsave movie");
+      console.error(error.response?.data?.message || "Failed to unsave movie");
     }
   };
   if (loading) return <Loading />;

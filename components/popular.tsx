@@ -23,7 +23,8 @@ export default function Popular() {
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
   useEffect(() => {
-    const id = typeof window !== "undefined" ? localStorage.getItem("userId") : null
+    const id =
+      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     setUserId(id);
   }, []);
   useEffect(() => {
@@ -48,7 +49,6 @@ export default function Popular() {
         }
       } catch (error) {
         console.error(error);
-        toast.error("Failed to load popular movies");
       } finally {
         setLoading(false);
       }
@@ -66,9 +66,10 @@ export default function Popular() {
     return Math.round(pop).toString();
   };
   const handleLike = async (movie: Movie) => {
-    const currentUserId = typeof window !== "undefined" ? localStorage.getItem("userId") : null
+    const currentUserId =
+      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!currentUserId) {
-      toast.error("Please login to like movies");
+      console.error("Please login to like movies");
       router.push("/auth/signin");
       return;
     }
@@ -79,27 +80,27 @@ export default function Popular() {
         { withCredentials: true },
       );
       setLikedMovies((prev) => [...prev, movie.id]);
-      toast.success("Added to liked movies");
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to like movie");
+      console.error(error.response?.data?.message || "Failed to like movie");
     }
   };
   const handleUnlike = async (movieId: number) => {
-    const currentUserId = typeof window !== "undefined" ? localStorage.getItem("userId") : null
+    const currentUserId =
+      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!currentUserId) return;
     try {
-      await axios.delete(
-        `${BASE_URL}/api/un-liked-movie/${movieId}`,
-        { data: { userId: currentUserId }, withCredentials: true },
-      );
+      await axios.delete(`${BASE_URL}/api/un-liked-movie/${movieId}`, {
+        data: { userId: currentUserId },
+        withCredentials: true,
+      });
       setLikedMovies((prev) => prev.filter((id) => id !== movieId));
-      toast.success("Removed from liked movies");
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to unlike movie");
+      console.error(error.response?.data?.message || "Failed to unlike movie");
     }
   };
   const handleSave = async (movie: Movie) => {
-    const currentUserId = typeof window !== "undefined" ? localStorage.getItem("userId") : null
+    const currentUserId =
+      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!currentUserId) {
       toast.error("Please login to save movies");
       router.push("/auth/signin");
@@ -114,21 +115,22 @@ export default function Popular() {
       setSavedMovies((prev) => [...prev, movie.id]);
       toast.success("Added to saved movies");
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to save movie");
+      console.error(error.response?.data?.message || "Failed to save movie");
     }
   };
   const handleUnsave = async (movieId: number) => {
-    const currentUserId = typeof window !== "undefined" ? localStorage.getItem("userId") : null
+    const currentUserId =
+      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (!currentUserId) return;
     try {
-      await axios.delete(
-        `${BASE_URL}/api/un-saved-movie/${movieId}`,
-        { data: { userId: currentUserId }, withCredentials: true },
-      );
+      await axios.delete(`${BASE_URL}/api/un-saved-movie/${movieId}`, {
+        data: { userId: currentUserId },
+        withCredentials: true,
+      });
       setSavedMovies((prev) => prev.filter((id) => id !== movieId));
       toast.success("Removed from saved movies");
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to unsave movie");
+      console.error(error.response?.data?.message || "Failed to unsave movie");
     }
   };
   if (loading) return <Loading />;

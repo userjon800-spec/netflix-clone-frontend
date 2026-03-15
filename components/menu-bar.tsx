@@ -34,7 +34,7 @@ export default function MenuBar() {
         setUser(data.user);
       })
       .catch((err) => console.error(err));
-  }, []);
+  }, [user?._id]);
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 0) {

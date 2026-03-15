@@ -3,6 +3,7 @@ import MenuBar from "@/components/menu-bar";
 import Popular from "@/components/popular";
 import TopRated from "@/components/top-rated";
 import Trending from "@/components/trending";
+import { User } from "@/types";
 import { BASE_URL } from "@/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,6 +20,7 @@ export default function Home() {
   const router = useRouter();
   const [showReminder, setShowReminder] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const [user, setUser] = useState<User | null>(null);
   const [dontShowAgain, setDontShowAgain] = useState(false);
   useEffect(() => {
     (async () => {
@@ -32,8 +34,14 @@ export default function Home() {
         }
         const { user } = await res.json();
         setUserEmail(user.email);
+        setUser(user);
+        if (user.role === "admin") {
+          return router.push("/admin");
+        }
         const reminderHidden =
-          typeof window !== "undefined" ? localStorage.getItem("hidePasswordReminder") : null;
+          typeof window !== "undefined"
+            ? localStorage.getItem("hidePasswordReminder")
+            : null;
         if (!user.password && !reminderHidden) {
           setShowReminder(true);
           toast(
@@ -88,9 +96,12 @@ export default function Home() {
       }
     })();
   }, [router]);
+  console.log(user);
   const handleDontShowAgain = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    typeof window !== "undefined" ? localStorage.setItem("hidePasswordReminder", 'true') : null;
+    typeof window !== "undefined"
+      ? localStorage.setItem("hidePasswordReminder", "true")
+      : null;
     setDontShowAgain(true);
     setShowReminder(false);
     toast.success("Eslatma o'chirildi", {

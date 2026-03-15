@@ -1,19 +1,14 @@
 "use client";
 import MenuBar from "@/components/menu-bar";
+import MovieCard from "@/components/movie-card";
 import axios from "axios";
-import Image from "next/image";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  IoSearchOutline,
-  IoFilmOutline,
-  IoStarOutline,
-  IoCalendarOutline,
-} from "react-icons/io5";
+import { IoSearchOutline } from "react-icons/io5";
 import Loading from "@/components/loading";
 import { Movie } from "@/types";
-import { API_KEY } from "@/utils";
+import { API_KEY, BASE_URL } from "@/utils";
+import toast from "react-hot-toast";
 export default function SearchPage() {
   const params = useParams();
   const router = useRouter();
@@ -23,7 +18,29 @@ export default function SearchPage() {
   const [totalResults, setTotalResults] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [hoveredMovie, setHoveredMovie] = useState<number | null>(null);
+  const [likedMovies, setLikedMovies] = useState<number[]>([]);
+  const [savedMovies, setSavedMovies] = useState<number[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  useEffect(() => {
+    const id = localStorage.getItem("userId");
+    setUserId(id);
+  }, []);
+  useEffect(() => {
+    if (!userId) return;
+    Promise.all([
+      axios.get(`${BASE_URL}/api/user-liked/${userId}`, {
+        withCredentials: true,
+      }),
+      axios.get(`${BASE_URL}/api/user-saved/${userId}`, {
+        withCredentials: true,
+      }),
+    ])
+      .then(([likedRes, savedRes]) => {
+        setLikedMovies(likedRes.data.map((item: any) => item.movieId));
+        setSavedMovies(savedRes.data.map((item: any) => item.movieId));
+      })
+      .catch((err) => console.error(err));
+  }, [userId]);
   useEffect(() => {
     const searchMovies = async () => {
       if (!query) return;
@@ -43,31 +60,84 @@ export default function SearchPage() {
     };
     searchMovies();
   }, [query, page]);
-  const getRatingColor = (rating: number) => {
-    if (rating >= 8) return "text-green-500";
-    if (rating >= 6) return "text-yellow-500";
-    return "text-red-500";
-  };
-  const getRatingPercentage = (rating: number) => {
-    return Math.round(rating * 10);
-  };
-  const formatYear = (dateString: string) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).getFullYear();
-  };
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const newQuery = formData.get("search") as string;
     if (newQuery.trim()) {
+      setPage(1);
       router.push(`/search/${encodeURIComponent(newQuery)}`);
+    }
+  };
+  const handleLike = async (movie: Movie) => {
+    const currentUserId = localStorage.getItem("userId");
+    if (!currentUserId) {
+      toast.error("Please login to like movies");
+      router.push("/auth/signin");
+      return;
+    }
+    try {
+      await axios.post(
+        `${BASE_URL}/api/liked-movie`,
+        { ...movie, userId: currentUserId },
+        { withCredentials: true },
+      );
+      setLikedMovies((prev) => [...prev, movie.id]);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to like movie");
+    }
+  };
+  const handleUnlike = async (movieId: number) => {
+    const currentUserId = localStorage.getItem("userId");
+    if (!currentUserId) return;
+    try {
+      await axios.delete(`${BASE_URL}/api/un-liked-movie/${movieId}`, {
+        data: { userId: currentUserId },
+        withCredentials: true,
+      });
+      setLikedMovies((prev) => prev.filter((id) => id !== movieId));
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to unlike movie");
+    }
+  };
+  const handleSave = async (movie: Movie) => {
+    const currentUserId = localStorage.getItem("userId");
+    if (!currentUserId) {
+      toast.error("Please login to save movies");
+      router.push("/auth/signin");
+      return;
+    }
+    try {
+      await axios.post(
+        `${BASE_URL}/api/saved-movie`,
+        { ...movie, userId: currentUserId },
+        { withCredentials: true },
+      );
+      setSavedMovies((prev) => [...prev, movie.id]);
+      toast.success("Added to saved movies");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to save movie");
+    }
+  };
+  const handleUnsave = async (movieId: number) => {
+    const currentUserId = localStorage.getItem("userId");
+    if (!currentUserId) return;
+    try {
+      await axios.delete(`${BASE_URL}/api/un-saved-movie/${movieId}`, {
+        data: { userId: currentUserId },
+        withCredentials: true,
+      });
+      setSavedMovies((prev) => prev.filter((id) => id !== movieId));
+      toast.success("Removed from saved movies");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to unsave movie");
     }
   };
   if (loading && page === 1) return <Loading />;
   return (
     <div className="min-h-screen bg-black text-white">
       <MenuBar />
-      <div className="max-w-380 mx-auto px-4 md:px-8 pt-24 pb-16">
+      <div className="max-w-1520 mx-auto px-4 md:px-8 pt-24 pb-16">
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
             <h1 className="text-3xl md:text-4xl font-bold">
@@ -94,73 +164,17 @@ export default function SearchPage() {
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
               {results.map((movie) => (
-                <Link
+                <MovieCard
                   key={movie.id}
-                  href={`/${movie.id}`}
-                  className="group cursor-pointer"
-                  onMouseEnter={() => setHoveredMovie(movie.id)}
-                  onMouseLeave={() => setHoveredMovie(null)}
-                >
-                  <div className="relative aspect-2/3 bg-gray-800 rounded-lg overflow-hidden transition-all duration-300 group-hover:scale-105 group-hover:z-10 group-hover:shadow-xl">
-                    {movie.poster_path ? (
-                      <Image
-                        src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                        alt={movie.title}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-110"
-                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-700 p-4">
-                        <IoFilmOutline className="text-5xl text-gray-500 mb-2" />
-                        <p className="text-xs text-gray-400 text-center">
-                          No poster available
-                        </p>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    {movie.vote_average > 0 && (
-                      <div
-                        className={`absolute top-2 left-2 flex items-center gap-1 px-2 py-1 rounded-md bg-black/60 backdrop-blur-sm text-xs font-bold ${getRatingColor(movie.vote_average)}`}
-                      >
-                        <IoStarOutline className="text-yellow-500" />
-                        <span>{getRatingPercentage(movie.vote_average)}%</span>
-                      </div>
-                    )}
-                    {movie.release_date && (
-                      <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-md bg-black/60 backdrop-blur-sm text-xs text-gray-300">
-                        <IoCalendarOutline />
-                        <span>{formatYear(movie.release_date)}</span>
-                      </div>
-                    )}
-                    {hoveredMovie === movie.id && (
-                      <div className="absolute inset-x-0 bottom-0 p-3 bg-linear-to-t from-black to-transparent">
-                        <h3 className="text-white font-semibold text-sm mb-1 line-clamp-1">
-                          {movie.title}
-                        </h3>
-                        <p className="text-gray-300 text-xs line-clamp-2 mb-2">
-                          {movie.overview || "No overview available"}
-                        </p>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-gray-400">
-                            {movie.vote_count} votes
-                          </span>
-                          <span className="text-red-500 hover:text-red-400 transition-colors">
-                            View details →
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <p className="mt-2 text-sm text-gray-300 line-clamp-1 md:hidden">
-                    {movie.title}
-                  </p>
-                  {movie.release_date && (
-                    <p className="text-xs text-gray-500 md:hidden">
-                      {formatYear(movie.release_date)}
-                    </p>
-                  )}
-                </Link>
+                  movie={movie}
+                  isLiked={likedMovies.includes(movie.id)}
+                  isSaved={savedMovies.includes(movie.id)}
+                  onLike={handleLike}
+                  onSave={handleSave}
+                  onUnlike={handleUnlike}
+                  onUnsave={handleUnsave}
+                  layout="grid"
+                />
               ))}
             </div>
             {totalPages > 1 && (

@@ -48,14 +48,16 @@ export default function ResetPasswordPage() {
         { withCredentials: true },
       );
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-      typeof window !== "undefined" ? localStorage.setItem("userIds",reset.data.userId) : null;
+      typeof window !== "undefined"
+        ? localStorage.setItem("userIds", reset.data.userId)
+        : null;
       setEmail(emailValue);
       if (reset.status === 200) {
         toast.success("Code verified! Please set your new password");
         setOnPassword(true);
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Invalid code or email");
+      console.error(error.response?.data?.message || "Invalid code or email");
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +83,10 @@ export default function ResetPasswordPage() {
         `${BASE_URL}/api/new-password`,
         {
           password: password,
-          id: typeof window !== "undefined" ? localStorage.getItem("userId") : null,
+          id:
+            typeof window !== "undefined"
+              ? localStorage.getItem("userId")
+              : null,
         },
         { withCredentials: true },
       );
@@ -91,7 +96,9 @@ export default function ResetPasswordPage() {
         setTimeout(() => router.replace("/auth/signin"), 1500);
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to reset password");
+      console.error(
+        error.response?.data?.message || "Failed to reset password",
+      );
     } finally {
       setIsLoading(false);
     }
