@@ -96,7 +96,6 @@ export default function Home() {
       }
     })();
   }, [router]);
-  console.log(user);
   const handleDontShowAgain = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     typeof window !== "undefined"
