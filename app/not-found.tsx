@@ -93,12 +93,11 @@ export default function NotFound() {
           </h3>
           <div className="flex flex-wrap justify-center gap-3">
             {[
-              { name: "Action", href: "/genre/action" },
-              { name: "Comedy", href: "/genre/comedy" },
-              { name: "Drama", href: "/genre/drama" },
-              { name: "Horror", href: "/genre/horror" },
-              { name: "Sci-Fi", href: "/genre/sci-fi" },
-              { name: "Romance", href: "/genre/romance" },
+              { name: "Action", href: "/action" },
+              { name: "Comedy", href: "/comedy" },
+              { name: "Horror", href: "/horror" },
+              { name: "Animation", href: "/animation" },
+              { name: "Upcoming", href: "/upcoming" },
             ].map((genre) => (
               <Link
                 key={genre.name}

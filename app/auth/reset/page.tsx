@@ -47,17 +47,21 @@ export default function ResetPasswordPage() {
         },
         { withCredentials: true },
       );
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-      typeof window !== "undefined"
-        ? localStorage.setItem("userIds", reset.data.userId)
-        : null;
-      setEmail(emailValue);
       if (reset.status === 200) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("userId", reset.data.userId);
+          if (reset.data.resetToken) {
+            localStorage.setItem("resetToken", reset.data.resetToken);
+          }
+        }
+        setEmail(emailValue);
         toast.success("Code verified! Please set your new password");
         setOnPassword(true);
       }
     } catch (error: any) {
-      console.error(error.response?.data?.message || "Invalid code or email");
+      const msg = error.response?.data?.message || "Invalid code or email";
+      toast.error(msg);
+      console.error(msg);
     } finally {
       setIsLoading(false);
     }
@@ -87,6 +91,10 @@ export default function ResetPasswordPage() {
             typeof window !== "undefined"
               ? localStorage.getItem("userId")
               : null,
+          resetToken:
+            typeof window !== "undefined"
+              ? localStorage.getItem("resetToken")
+              : null,
         },
         { withCredentials: true },
       );
@@ -96,9 +104,9 @@ export default function ResetPasswordPage() {
         setTimeout(() => router.replace("/auth/signin"), 1500);
       }
     } catch (error: any) {
-      console.error(
-        error.response?.data?.message || "Failed to reset password",
-      );
+      const msg = error.response?.data?.message || "Failed to reset password";
+      toast.error(msg);
+      console.error(msg);
     } finally {
       setIsLoading(false);
     }

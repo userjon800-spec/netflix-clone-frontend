@@ -10,7 +10,7 @@ const roboto = Roboto({
 export const metadata: Metadata = {
   metadataBase: new URL("https://project-javohir.netlify.app/"),
   title: "Netflix clone | Javohir Xamdamboyev",
-  description: "Notion is a Notion clone built by Javohir",
+  description: "Netflix clone web application built by Javohir",
   icons: { icon: "/logo.svg" },
   openGraph: {
     title: "Netflix clone",
@@ -18,7 +18,8 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://project-javohir.netlify.app/",
     locale: "uz_UZ",
-    images: "https://pmo.kg/wp-content/uploads/2025/03/sayt-skl-77-e1742934926854-1024x565.jpg",
+    images:
+      "https://pmo.kg/wp-content/uploads/2025/03/sayt-skl-77-e1742934926854-1024x565.jpg",
     countryName: "Uzbekistan",
     siteName: "Netflix clone - Clone",
     emails: "userjon800@gmail.com",
@@ -38,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${roboto.className}`}>
         <Toaster />
         {children}

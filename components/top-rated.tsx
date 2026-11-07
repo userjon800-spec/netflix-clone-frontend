@@ -1,3 +1,4 @@
+"use client";
 import axios from "axios";
 import { useEffect, useState, useRef } from "react";
 import {
@@ -16,7 +17,6 @@ export default function TopRated() {
   const [topRated, setTopRated] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [showControls, setShowControls] = useState(false);
   const [likedMovies, setLikedMovies] = useState<number[]>([]);
   const [savedMovies, setSavedMovies] = useState<number[]>([]);
   const router = useRouter();
@@ -43,8 +43,8 @@ export default function TopRated() {
               withCredentials: true,
             }),
           ]);
-          setLikedMovies(likedRes.data.map((item: any) => item.movieId));
-          setSavedMovies(savedRes.data.map((item: any) => item.movieId));
+          setLikedMovies(likedRes.data.map((item: any) => item.id));
+          setSavedMovies(savedRes.data.map((item: any) => item.id));
         }
       } catch (error) {
         console.error(error);
@@ -56,7 +56,10 @@ export default function TopRated() {
   }, [userId]);
   const scroll = (direction: "left" | "right") => {
     if (carouselRef.current) {
-      const scrollAmount = direction === "left" ? -400 : 400;
+      const scrollAmount =
+        direction === "left"
+          ? -carouselRef.current.clientWidth * 0.75
+          : carouselRef.current.clientWidth * 0.75;
       carouselRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
@@ -131,88 +134,67 @@ export default function TopRated() {
   const avgRating =
     topRated.length > 0
       ? (
-          topRated.reduce((acc, movie) => acc + movie.vote_average, 0) /
+          topRated.reduce((acc, movie) => acc + (movie.vote_average as number), 0) /
           topRated.length
         ).toFixed(1)
       : "0";
   if (loading) return <Loading />;
   return (
-    <div className="px-16 py-8 max-md:px-4 relative group max-w-380">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-4">
-          <h2 className="text-white text-2xl font-bold">Top Rated Movies</h2>
-          <div className="hidden md:flex items-center gap-1 bg-yellow-400 text-black px-2 py-1 rounded text-xs font-bold">
-            <IoStar className="text-sm" />
-            <span>IMDb Top</span>
-          </div>
+    <div className="px-6 md:px-16 py-6 relative max-w-380 mx-auto w-full group/row">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <h2 className="text-white text-xl md:text-2xl font-bold flex items-center gap-2">
+            <span className="w-1.5 h-6 bg-amber-500 rounded-full" />
+            Eng Yuqori Baholanganlar
+          </h2>
+          <span className="hidden sm:inline-flex items-center gap-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded text-xs font-bold">
+            <IoStar className="text-xs" />
+            IMDb Top
+          </span>
+        </div>
+        <div className="hidden md:flex items-center gap-2 text-xs text-zinc-400">
+          <IoFilmOutline />
+          <span>{topRated.length} ta film</span>
         </div>
       </div>
-      <div className="flex items-center gap-4 mb-4 text-xs text-gray-400">
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-          <span>9.0+</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-full bg-green-500"></div>
-          <span>8.0-8.9</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-          <span>7.0-7.9</span>
-        </div>
-      </div>
-      <div
-        className="relative"
-        onMouseEnter={() => setShowControls(true)}
-        onMouseLeave={() => setShowControls(false)}
-      >
-        {showControls && topRated.length > 5 && (
-          <>
-            <button
-              onClick={() => scroll("left")}
-              className="absolute -left-5 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm"
-            >
-              <IoChevronBack className="text-2xl" />
-            </button>
-            <button
-              onClick={() => scroll("right")}
-              className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm"
-            >
-              <IoChevronForward className="text-2xl" />
-            </button>
-          </>
-        )}
+
+      <div className="relative">
+        <button
+          onClick={() => scroll("left")}
+          className="absolute -left-3 md:-left-6 top-0 bottom-0 w-10 md:w-12 bg-black/70 hover:bg-black/90 text-white z-30 flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-all duration-300 cursor-pointer backdrop-blur-xs rounded-r-lg shadow-2xl"
+          aria-label="Scroll left"
+        >
+          <IoChevronBack className="text-2xl md:text-3xl transition-transform hover:scale-125" />
+        </button>
+
+        <button
+          onClick={() => scroll("right")}
+          className="absolute -right-3 md:-right-6 top-0 bottom-0 w-10 md:w-12 bg-black/70 hover:bg-black/90 text-white z-30 flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-all duration-300 cursor-pointer backdrop-blur-xs rounded-l-lg shadow-2xl"
+          aria-label="Scroll right"
+        >
+          <IoChevronForward className="text-2xl md:text-3xl transition-transform hover:scale-125" />
+        </button>
+
         <div
           ref={carouselRef}
-          className="flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+          className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide scroll-smooth py-3 px-1"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {topRated.map((movie, index) => (
-            <div key={movie.id} className="relative">
-              <MovieCard
-                movie={movie}
-                index={index}
-                isLiked={likedMovies.includes(movie.id)}
-                isSaved={savedMovies.includes(movie.id)}
-                onLike={handleLike}
-                onSave={handleSave}
-                onUnlike={handleUnlike}
-                onUnsave={handleUnsave}
-                showIndex={true}
-                layout="carousel"
-              />
-            </div>
+            <MovieCard
+              key={movie.id}
+              movie={movie}
+              index={index}
+              isLiked={likedMovies.includes(movie.id)}
+              isSaved={savedMovies.includes(movie.id)}
+              onLike={handleLike}
+              onSave={handleSave}
+              onUnlike={handleUnlike}
+              onUnsave={handleUnsave}
+              showIndex={true}
+              layout="carousel"
+            />
           ))}
-        </div>
-      </div>
-      <div className="flex items-center gap-4 mt-4 text-xs text-gray-400">
-        <div className="flex items-center gap-1">
-          <IoFilmOutline />
-          <span>{topRated.length} movies</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <IoStar className="text-yellow-400" />
-          <span>Avg: {avgRating}</span>
         </div>
       </div>
     </div>

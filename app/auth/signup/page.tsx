@@ -8,6 +8,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 import { FaGithub } from "react-icons/fa";
 import { BASE_URL } from "@/utils";
+import toast from "react-hot-toast";
 export default function SignUp() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
@@ -17,18 +18,38 @@ export default function SignUp() {
     setIsLoading(true);
     try {
       const formData = new FormData(e.currentTarget);
-      const body = {
-        name: formData.get("name"),
-        email: formData.get("email"),
-        password: formData.get("password"),
-      };
-      const data = await axios.post(`${BASE_URL}/api/register`, body, {
+      const email = String(formData.get("email") || "");
+      const password = String(formData.get("password") || "");
+      const name = String(formData.get("name") || "");
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        toast.error("Please enter a valid email address");
+        setIsLoading(false);
+        return;
+      }
+      if (password.length < 4) {
+        toast.error("Password must be at least 4 characters");
+        setIsLoading(false);
+        return;
+      }
+
+      const body = { name, email, password };
+      const res = await axios.post(`${BASE_URL}/api/register`, body, {
         withCredentials: true,
       });
-      if (data.status === 200) {
+      if (res.status === 200) {
+        if (typeof window !== "undefined" && res.data.user) {
+          localStorage.setItem("userId", res.data.user._id || res.data.user.id);
+        }
+        toast.success(res.data.message || "Registration successful!");
         router.push("/");
       }
-    } catch (error) {
+    } catch (error: any) {
+      const msg =
+        error.response?.data?.message ||
+        "Failed to register. Please try again.";
+      toast.error(msg);
       console.error(error);
     } finally {
       setIsLoading(false);

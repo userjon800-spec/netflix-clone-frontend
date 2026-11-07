@@ -1,5 +1,6 @@
 "use client";
 import MenuBar from "@/components/menu-bar";
+import HeroBillboard from "@/components/hero-billboard";
 import Popular from "@/components/popular";
 import TopRated from "@/components/top-rated";
 import Trending from "@/components/trending";
@@ -170,13 +171,14 @@ export default function Home() {
           </div>
         </div>
       )}
-      <div
-        className={`transition-all border duration-300 ${showReminder && !dontShowAgain ? "pt-18 md:pt-18" : "pt-[-15px]"}`}
-      >
+      <div className="w-full relative">
         <MenuBar />
-        <Trending />
-        <TopRated />
-        <Popular />
+        <HeroBillboard />
+        <div className="relative -mt-16 md:-mt-24 z-20 space-y-2 pb-16">
+          <Trending />
+          <TopRated />
+          <Popular />
+        </div>
       </div>
     </div>
   );

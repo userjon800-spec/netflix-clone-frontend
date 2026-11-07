@@ -1,11 +1,10 @@
+"use client";
 import axios from "axios";
 import { useEffect, useState, useRef } from "react";
 import {
   IoChevronForward,
   IoChevronBack,
-  IoTrendingUp,
   IoTimeOutline,
-  IoStarOutline,
 } from "react-icons/io5";
 import Loading from "./loading";
 import MovieCard from "./movie-card";
@@ -17,7 +16,6 @@ export default function Popular() {
   const [popular, setPopular] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [showControls, setShowControls] = useState(false);
   const [likedMovies, setLikedMovies] = useState<number[]>([]);
   const [savedMovies, setSavedMovies] = useState<number[]>([]);
   const router = useRouter();
@@ -44,8 +42,8 @@ export default function Popular() {
               withCredentials: true,
             }),
           ]);
-          setLikedMovies(likedRes.data.map((item: any) => item.movieId));
-          setSavedMovies(savedRes.data.map((item: any) => item.movieId));
+          setLikedMovies(likedRes.data.map((item: any) => item.id));
+          setSavedMovies(savedRes.data.map((item: any) => item.id));
         }
       } catch (error) {
         console.error(error);
@@ -57,7 +55,10 @@ export default function Popular() {
   }, [userId]);
   const scroll = (direction: "left" | "right") => {
     if (carouselRef.current) {
-      const scrollAmount = direction === "left" ? -400 : 400;
+      const scrollAmount =
+        direction === "left"
+          ? -carouselRef.current.clientWidth * 0.75
+          : carouselRef.current.clientWidth * 0.75;
       carouselRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
@@ -135,111 +136,60 @@ export default function Popular() {
   };
   if (loading) return <Loading />;
   return (
-    <div className="px-16 py-8 max-md:px-4 relative group max-w-380">
-      <div className="flex items-center justify-between mb-4">
+    <div className="px-6 md:px-16 py-6 relative max-w-380 mx-auto w-full group/row">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className="bg-red-600 p-2 rounded-full">
-            <IoTrendingUp className="text-white text-xl" />
-          </div>
-          <h2 className="text-white text-2xl font-bold">Popular Now</h2>
-          <span className="bg-gray-800 text-gray-300 text-xs px-2 py-1 rounded-full">
-            Weekly Top 20
+          <h2 className="text-white text-xl md:text-2xl font-bold flex items-center gap-2">
+            <span className="w-1.5 h-6 bg-red-600 rounded-full" />
+            Ommabop Filmlar
+          </h2>
+          <span className="hidden sm:inline-block bg-zinc-800 text-zinc-300 border border-zinc-700 text-xs px-2.5 py-0.5 rounded-full">
+            Top 20
           </span>
         </div>
-        <div className="hidden md:flex items-center gap-3 text-xs text-gray-400">
-          <div className="flex items-center gap-1">
-            <IoTimeOutline />
-            <span>Updated daily</span>
-          </div>
-          <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
-          <div className="flex items-center gap-1">
-            <IoStarOutline />
-            <span>{popular.length} movies</span>
-          </div>
+        <div className="hidden md:flex items-center gap-2 text-xs text-zinc-400">
+          <IoTimeOutline />
+          <span>Har kuni yangilanadi</span>
         </div>
       </div>
-      <div
-        className="relative"
-        onMouseEnter={() => setShowControls(true)}
-        onMouseLeave={() => setShowControls(false)}
-      >
-        {showControls && popular.length > 5 && (
-          <>
-            <button
-              onClick={() => scroll("left")}
-              className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 bg-black/80 hover:bg-red-600 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm"
-            >
-              <IoChevronBack className="text-2xl" />
-            </button>
-            <button
-              onClick={() => scroll("right")}
-              className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 bg-black/80 hover:bg-red-600 text-white p-3 rounded-full transition-all duration-300 backdrop-blur-sm"
-            >
-              <IoChevronForward className="text-2xl" />
-            </button>
-          </>
-        )}
+
+      <div className="relative">
+        <button
+          onClick={() => scroll("left")}
+          className="absolute -left-3 md:-left-6 top-0 bottom-0 w-10 md:w-12 bg-black/70 hover:bg-black/90 text-white z-30 flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-all duration-300 cursor-pointer backdrop-blur-xs rounded-r-lg shadow-2xl"
+          aria-label="Scroll left"
+        >
+          <IoChevronBack className="text-2xl md:text-3xl transition-transform hover:scale-125" />
+        </button>
+
+        <button
+          onClick={() => scroll("right")}
+          className="absolute -right-3 md:-right-6 top-0 bottom-0 w-10 md:w-12 bg-black/70 hover:bg-black/90 text-white z-30 flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-all duration-300 cursor-pointer backdrop-blur-xs rounded-l-lg shadow-2xl"
+          aria-label="Scroll right"
+        >
+          <IoChevronForward className="text-2xl md:text-3xl transition-transform hover:scale-125" />
+        </button>
+
         <div
           ref={carouselRef}
-          className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+          className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide scroll-smooth py-3 px-1"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {popular.map((movie, index) => (
-            <div key={movie.id} className="relative">
-              <MovieCard
-                movie={movie}
-                index={index}
-                isLiked={likedMovies.includes(movie.id)}
-                isSaved={savedMovies.includes(movie.id)}
-                onLike={handleLike}
-                onSave={handleSave}
-                onUnlike={handleUnlike}
-                onUnsave={handleUnsave}
-                showIndex={false}
-                layout="carousel"
-              />
-              <div className="absolute top-2 left-2 z-20 flex items-center gap-1 bg-black/70 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
-                <IoTrendingUp className="text-red-500 text-xs" />
-                <span>{formatPopularity(movie.popularity)}</span>
-              </div>
-              {movie.vote_count > 1000 && (
-                <div className="absolute bottom-2 right-2 z-20 text-xs bg-yellow-500 text-black px-2 py-1 rounded font-medium">
-                  HD
-                </div>
-              )}
-              {index < 3 && (
-                <div
-                  className={`absolute -bottom-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 z-20 ${
-                    index === 0
-                      ? "bg-yellow-500 border-yellow-300 text-black"
-                      : index === 1
-                        ? "bg-gray-400 border-gray-300 text-black"
-                        : "bg-amber-700 border-amber-600 text-white"
-                  }`}
-                >
-                  #{index + 1}
-                </div>
-              )}
-            </div>
+            <MovieCard
+              key={movie.id}
+              movie={movie}
+              index={index}
+              isLiked={likedMovies.includes(movie.id)}
+              isSaved={savedMovies.includes(movie.id)}
+              onLike={handleLike}
+              onSave={handleSave}
+              onUnlike={handleUnlike}
+              onUnsave={handleUnsave}
+              showIndex={false}
+              layout="carousel"
+            />
           ))}
-        </div>
-      </div>
-      <div className="flex items-center gap-4 mt-4 text-xs text-gray-400">
-        <div className="flex items-center gap-1">
-          <div className="w-2 h-2 rounded-full bg-green-500"></div>
-          <span>High rating (7.5+)</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-          <span>Good rating (6.0-7.4)</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-2 h-2 rounded-full bg-red-500"></div>
-          <span>Average (below 6.0)</span>
-        </div>
-        <div className="flex items-center gap-1 ml-auto">
-          <IoTrendingUp className="text-red-500" />
-          <span>Popularity score</span>
         </div>
       </div>
     </div>

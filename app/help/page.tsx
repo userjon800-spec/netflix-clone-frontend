@@ -1,6 +1,6 @@
 "use client";
 import MenuBar from "@/components/menu-bar";
-import { faqs } from "@/utils";
+import { BASE_URL, faqs } from "@/utils";
 import { useState } from "react";
 import { FaTelegramPlane } from "react-icons/fa";
 import {
@@ -44,38 +44,12 @@ export default function HelpPage() {
     { id: "security", name: "Security", icon: IoShieldCheckmarkOutline },
     { id: "technical", name: "Technical", icon: IoBulbOutline },
   ];
-  const token = process.env.NEXT_PUBLIC_TOKEN_BOT as string;
-  const chatId = process.env.NEXT_PUBLIC_CHAT_ID as string;
   const filteredFaqs =
     faqCategory === "all"
       ? faqs
       : faqs.filter((faq) => faq.category === faqCategory);
   const sendToTelegram = async (data: any) => {
-    const emoji: { [key: string]: string } = {
-      general: "📝",
-      bug: "🐛",
-      feature: "💡",
-      other: "❓",
-    };
-    const ratingStars = "⭐".repeat(data.rating) + "☆".repeat(5 - data.rating);
-    const messageText = `
-        ${emoji[data.feedbackType]} *New Feedback Received!*
-          *Type:* ${data.feedbackType.toUpperCase()}
-          *Name:* ${data.name || "Not provided"}
-          *Email:* ${data.email || "Not provided"}
-          *Rating:* ${ratingStars} (${data.rating}/5)
-                *Message:*
-              ${data.message}
-            📅 *Date:* ${new Date().toLocaleString()}
-    `;
-    const response = await axios.post(
-      `https://api.telegram.org/bot${token}/sendMessage`,
-      {
-        chat_id: chatId,
-        text: messageText,
-        parse_mode: "Markdown",
-      },
-    );
+    const response = await axios.post(`${BASE_URL}/api/feedback`, data);
     return response.data;
   };
   const handleSubmitFeedback = async (e: React.FormEvent) => {

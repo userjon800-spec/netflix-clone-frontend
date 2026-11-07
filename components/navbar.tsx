@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -111,7 +111,7 @@ export default function Navbar() {
                 <span className="text-sm">Help Centre</span>
               </Link>
               <Link
-                href="/login"
+                href="/auth/signin"
                 className="bg-red-600 text-white text-center py-2 rounded text-sm font-medium hover:bg-red-700 transition-colors mt-2"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
@@ -122,7 +122,7 @@ export default function Navbar() {
         )}
         <div className="hidden md:flex items-center absolute right-0 top-1/2 -translate-y-1/2">
           <Link
-            href="/"
+            href="/help"
             className="flex items-center gap-1 text-gray-300 hover:text-white transition-colors text-sm"
           >
             <IoHelpBuoyOutline className="text-lg" />

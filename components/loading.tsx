@@ -1,17 +1,17 @@
 export default function Loading() {
   return (
-    <div className="px-16 py-8 max-md:px-4 relative">
+    <div className="px-6 md:px-16 py-6 relative max-w-380 mx-auto w-full select-none">
       <div className="flex items-center gap-2 mb-4">
-        <div className="h-8 w-48 bg-gray-800 rounded-md animate-pulse"></div>
-        <div className="h-5 w-24 bg-gray-800/50 rounded-full animate-pulse"></div>
+        <div className="w-1.5 h-6 bg-zinc-800 rounded-full animate-pulse" />
+        <div className="h-6 w-44 bg-zinc-800/80 rounded-md animate-pulse" />
       </div>
-      <div className="flex gap-3 overflow-hidden">
+      <div className="flex gap-3 md:gap-4 overflow-hidden py-3">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="relative min-w-50 h-75 shrink-0">
-            <div className="w-full h-full bg-gray-800 rounded-md overflow-hidden">
-              <div className="w-full h-full bg-linear-to-r from-gray-800 via-gray-700 to-gray-800 animate-shimmer"></div>
-            </div>
-            <div className="absolute -left-8 top-1/2 -translate-y-1/2 w-16 h-16 bg-gray-800/20 rounded-full hidden md:block animate-pulse"></div>
+          <div
+            key={i}
+            className="w-42.5 sm:w-48.75 md:w-53.75 shrink-0 aspect-2/3 rounded-xl bg-zinc-900 border border-white/5 overflow-hidden relative animate-pulse"
+          >
+            <div className="w-full h-full bg-linear-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
           </div>
         ))}
       </div>
@@ -25,13 +25,7 @@ export default function Loading() {
           }
         }
         .animate-shimmer {
-          animation: shimmer 2s infinite;
-          background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 255, 255, 0.05),
-            transparent
-          );
+          animation: shimmer 1.8s infinite;
         }
       `}</style>
     </div>

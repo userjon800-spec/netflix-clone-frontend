@@ -7,11 +7,20 @@ import Loading from "@/components/loading";
 import { IoCalendarOutline } from "react-icons/io5";
 import { Movie } from "@/types";
 import { BASE_URL } from "@/utils";
+import { useMovieActions } from "@/hooks/useMovieActions";
+
 export default function UpcomingPage() {
   const [upcoming, setUpcoming] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
-  const [likedMovies, setLikedMovies] = useState<number[]>([]);
-  const [savedMovies, setSavedMovies] = useState<number[]>([]);
+  const {
+    likedMovies,
+    savedMovies,
+    handleLike,
+    handleSave,
+    handleUnlike,
+    handleUnsave,
+  } = useMovieActions();
+
   useEffect(() => {
     const fetchUpcoming = async () => {
       try {
@@ -29,80 +38,9 @@ export default function UpcomingPage() {
     };
     fetchUpcoming();
   }, []);
-  useEffect(() => {
-     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-    if (!userId) return;
-    Promise.all([
-      axios.get(`${BASE_URL}/api/user-liked/${userId}`,{
-        withCredentials: true,
-      }),
-      axios.get(`${BASE_URL}/api/user-saved/${userId}`,{
-        withCredentials: true,
-      }),
-    ])
-      .then(([likedRes, savedRes]) => {
-        setLikedMovies(likedRes.data.map((item: any) => item.movieId));
-        setSavedMovies(savedRes.data.map((item: any) => item.movieId));
-      })
-      .catch((err) => console.error(err));
-  }, []);
-  const handleLike = async (movie: any) => {
-     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-    if (!userId) return;
-    try {
-      await axios.post(
-        `${BASE_URL}/api/liked-movie`,
-        { ...movie, userId },
-        { withCredentials: true },
-      );
-      setLikedMovies((prev) => [...prev, movie.id]);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  const handleSave = async (movie: any) => {
-     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-    if (!userId) return;
-    try {
-      await axios.post(
-        `${BASE_URL}/api/saved-movie`,
-        { ...movie, userId },
-        { withCredentials: true },
-      );
-      setSavedMovies((prev) => [...prev, movie.id]);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  const handleUnlike = async (movieId: number) => {
-     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-    if (!userId) return;
-    try {
-      await axios.delete(
-        `${BASE_URL}/api/un-liked-movie/${movieId}`,
-        { data: { userId }, withCredentials: true },
-      );
-      setLikedMovies((prev) => prev.filter((id) => id !== movieId));
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  const handleUnsave = async (movieId: number) => {
-     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-    if (!userId) return;
-    try {
-      await axios.delete(
-        `${BASE_URL}/api/un-saved-movie/${movieId}`,
-        { data: { userId }, withCredentials: true },
-      );
-      setSavedMovies((prev) => prev.filter((id) => id !== movieId));
-    } catch (error) {
-      console.error(error);
-    }
-  };
   if (loading) return <Loading />;
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black text-white">
       <MenuBar />
       <div className="max-w-1520 mx-auto px-4 md:px-8 pt-24 pb-16">
         <div className="mb-8">

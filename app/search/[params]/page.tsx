@@ -7,8 +7,9 @@ import { useEffect, useState } from "react";
 import { IoSearchOutline } from "react-icons/io5";
 import Loading from "@/components/loading";
 import { Movie } from "@/types";
-import { API_KEY, BASE_URL } from "@/utils";
-import toast from "react-hot-toast";
+import { API_KEY } from "@/utils";
+import { useMovieActions } from "@/hooks/useMovieActions";
+
 export default function SearchPage() {
   const params = useParams();
   const router = useRouter();
@@ -18,29 +19,16 @@ export default function SearchPage() {
   const [totalResults, setTotalResults] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [likedMovies, setLikedMovies] = useState<number[]>([]);
-  const [savedMovies, setSavedMovies] = useState<number[]>([]);
-  const [userId, setUserId] = useState<string | null>(null);
-  useEffect(() => {
-    const id = localStorage.getItem("userId");
-    setUserId(id);
-  }, []);
-  useEffect(() => {
-    if (!userId) return;
-    Promise.all([
-      axios.get(`${BASE_URL}/api/user-liked/${userId}`, {
-        withCredentials: true,
-      }),
-      axios.get(`${BASE_URL}/api/user-saved/${userId}`, {
-        withCredentials: true,
-      }),
-    ])
-      .then(([likedRes, savedRes]) => {
-        setLikedMovies(likedRes.data.map((item: any) => item.movieId));
-        setSavedMovies(savedRes.data.map((item: any) => item.movieId));
-      })
-      .catch((err) => console.error(err));
-  }, [userId]);
+  const [filterTag, setFilterTag] = useState<string>("all");
+  const {
+    likedMovies,
+    savedMovies,
+    handleLike,
+    handleSave,
+    handleUnlike,
+    handleUnsave,
+  } = useMovieActions();
+
   useEffect(() => {
     const searchMovies = async () => {
       if (!query) return;
@@ -60,6 +48,7 @@ export default function SearchPage() {
     };
     searchMovies();
   }, [query, page]);
+
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -69,79 +58,32 @@ export default function SearchPage() {
       router.push(`/search/${encodeURIComponent(newQuery)}`);
     }
   };
-  const handleLike = async (movie: Movie) => {
-    const currentUserId = localStorage.getItem("userId");
-    if (!currentUserId) {
-      toast.error("Please login to like movies");
-      router.push("/auth/signin");
-      return;
+  const filteredResults = results.filter((movie) => {
+    if (filterTag === "top_rated") return (movie.vote_average || 0) >= 7.0;
+    if (filterTag === "new") {
+      const year = new Date(movie.release_date || "").getFullYear();
+      return year >= 2023;
     }
-    try {
-      await axios.post(
-        `${BASE_URL}/api/liked-movie`,
-        { ...movie, userId: currentUserId },
-        { withCredentials: true },
-      );
-      setLikedMovies((prev) => [...prev, movie.id]);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to like movie");
-    }
-  };
-  const handleUnlike = async (movieId: number) => {
-    const currentUserId = localStorage.getItem("userId");
-    if (!currentUserId) return;
-    try {
-      await axios.delete(`${BASE_URL}/api/un-liked-movie/${movieId}`, {
-        data: { userId: currentUserId },
-        withCredentials: true,
-      });
-      setLikedMovies((prev) => prev.filter((id) => id !== movieId));
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to unlike movie");
-    }
-  };
-  const handleSave = async (movie: Movie) => {
-    const currentUserId = localStorage.getItem("userId");
-    if (!currentUserId) {
-      toast.error("Please login to save movies");
-      router.push("/auth/signin");
-      return;
-    }
-    try {
-      await axios.post(
-        `${BASE_URL}/api/saved-movie`,
-        { ...movie, userId: currentUserId },
-        { withCredentials: true },
-      );
-      setSavedMovies((prev) => [...prev, movie.id]);
-      toast.success("Added to saved movies");
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to save movie");
-    }
-  };
-  const handleUnsave = async (movieId: number) => {
-    const currentUserId = localStorage.getItem("userId");
-    if (!currentUserId) return;
-    try {
-      await axios.delete(`${BASE_URL}/api/un-saved-movie/${movieId}`, {
-        data: { userId: currentUserId },
-        withCredentials: true,
-      });
-      setSavedMovies((prev) => prev.filter((id) => id !== movieId));
-      toast.success("Removed from saved movies");
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to unsave movie");
-    }
-  };
+    if (filterTag === "popular") return (movie.popularity || 0) >= 50;
+    return true;
+  });
+
+  const filterChips = [
+    { id: "all", label: "Hammasi" },
+    { id: "top_rated", label: "★ Yuqori reytingli" },
+    { id: "new", label: "Yangi filmlar (2023+)" },
+    { id: "popular", label: "Ommabop" },
+  ];
+
   if (loading && page === 1) return <Loading />;
   return (
     <div className="min-h-screen bg-black text-white">
       <MenuBar />
       <div className="max-w-1520 mx-auto px-4 md:px-8 pt-24 pb-16">
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-            <h1 className="text-3xl md:text-4xl font-bold">
-              Search Results for "{decodeURIComponent(query)}"
+            <h1 className="text-2xl md:text-3xl font-bold">
+              "{decodeURIComponent(query)}" uchun qidiruv natijalari
             </h1>
             <form onSubmit={handleSearch} className="relative w-full md:w-80">
               <input
@@ -149,21 +91,39 @@ export default function SearchPage() {
                 name="search"
                 defaultValue={decodeURIComponent(query)}
                 placeholder="Search movies..."
-                className="w-full h-12 pl-12 pr-4 bg-gray-800 text-white rounded-md border border-gray-700 focus:border-red-600 focus:outline-none transition-colors"
+                className="w-full h-11 pl-11 pr-4 bg-white/5 text-white rounded-xl border border-white/10 focus:border-red-600 focus:outline-none transition-colors text-sm"
               />
-              <IoSearchOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl" />
+              <IoSearchOutline className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
             </form>
           </div>
-          <p className="text-gray-400">
-            Found{" "}
-            <span className="text-white font-semibold">{totalResults}</span>{" "}
-            movies
+          <p className="text-gray-400 text-xs">
+            Jami{" "}
+            <span className="text-white font-semibold">{totalResults}</span> ta
+            film topildi
           </p>
+
+          {/* YouTube Style Filter Chips */}
+          <div className="flex items-center gap-2 mt-4 overflow-x-auto pb-1 scrollbar-hide">
+            {filterChips.map((chip) => (
+              <button
+                key={chip.id}
+                onClick={() => setFilterTag(chip.id)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer border ${
+                  filterTag === chip.id
+                    ? "bg-white text-black border-white font-semibold"
+                    : "bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                {chip.label}
+              </button>
+            ))}
+          </div>
         </div>
-        {results.length > 0 ? (
+
+        {filteredResults.length > 0 ? (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-              {results.map((movie) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
+              {filteredResults.map((movie) => (
                 <MovieCard
                   key={movie.id}
                   movie={movie}

@@ -42,6 +42,9 @@ export default function SignIn() {
       const { data, status } = await axios.post(`${BASE_URL}/api/login`, body, {
         withCredentials: true,
       });
+      if (typeof window !== "undefined" && data.user) {
+        localStorage.setItem("userId", data.user._id || data.user.id);
+      }
       if (data.user.role === "admin") {
         router.push("/admin");
         return;
@@ -54,6 +57,7 @@ export default function SignIn() {
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || "Invalid email or password";
+      toast.error(errorMessage);
       console.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -98,7 +102,7 @@ export default function SignIn() {
                   className="w-full h-14 px-4 pt-2 pb-1 bg-[#333333] text-white rounded-md border border-transparent focus:border-white/30 focus:outline-none transition-colors peer"
                   required
                 />
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none peer-focus:top-3 peer-focus:text-xs peer-focus:translate-y-0 peer-[:not(:placeholder-shown)]:top-3 peer-[:not(:placeholder-shown)]:text-xs transition-all">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none peer-focus:top-3 peer-focus:text-xs peer-focus:translate-y-0 peer-not-placeholder-shown:top-3 peer-not-placeholder-shown:text-xs transition-all">
                   Email or phone number
                 </span>
               </div>
@@ -110,7 +114,7 @@ export default function SignIn() {
                   required
                   minLength={4}
                 />
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none peer-focus:top-3 peer-focus:text-xs peer-focus:translate-y-0 peer-[:not(:placeholder-shown)]:top-3 peer-[:not(:placeholder-shown)]:text-xs transition-all">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none peer-focus:top-3 peer-focus:text-xs peer-focus:translate-y-0 peer-not-placeholder-shown:top-3 peer-not-placeholder-shown:text-xs transition-all">
                   Password
                 </span>
                 <button

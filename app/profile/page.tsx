@@ -1,201 +1,275 @@
 "use client";
 import MenuBar from "@/components/menu-bar";
-import MovieCard from "@/components/movie-card";
 import { User } from "@/types";
 import axios from "axios";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState, useMemo } from "react";
 import toast from "react-hot-toast";
 import Image from "next/image";
+import Link from "next/link";
 import {
-  IoPersonCircle,
-  IoSaveOutline,
+  IoPersonCircleOutline,
+  IoBookmarkOutline,
   IoHeartOutline,
   IoKeyOutline,
   IoCameraOutline,
-  IoCheckmarkCircle,
-  IoTimeOutline,
+  IoCalendarOutline,
   IoFilmOutline,
-  IoBookmark,
   IoLockOpenOutline,
+  IoShieldCheckmarkOutline,
+  IoPencilOutline,
+  IoTrashOutline,
+  IoBarChartOutline,
+  IoPlayOutline,
+  IoStarOutline,
 } from "react-icons/io5";
 import { UploadButton } from "@/utils/uploadthing";
 import { BASE_URL } from "@/utils";
+
 export default function ProfilePage() {
   const [user, setUser] = useState<User>();
-  const [activeTab, setActiveTab] = useState("profile");
+  const [activeTab, setActiveTab] = useState<
+    "saved" | "liked" | "info" | "security" | "stats"
+  >("saved");
   const [resetCode, setResetCode] = useState(["", "", "", "", "", ""]);
   const [savedMovies, setSavedMovies] = useState<any[]>([]);
   const [likedMovies, setLikedMovies] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [editFormData, setEditFormData] = useState({ name: "", email: "" });
+  const [editLoading, setEditLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
   const [updatedAvatar, setUpdatedAvatar] = useState(false);
-   const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
+
   useEffect(() => {
-    const id = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     axios
-      .get(`${BASE_URL}/api/user/${id}`, { withCredentials: true })
-      .then(({ data }) => setUser(data))
-      .catch((err) => console.error(err));
+      .get(`${BASE_URL}/api/me`, { withCredentials: true })
+      .then(({ data }) => {
+        if (data.user) {
+          setUser(data.user);
+          setEditFormData({
+            name: data.user.name || "",
+            email: data.user.email || "",
+          });
+          const currentId = data.user._id || data.user.id;
+          if (currentId) {
+            localStorage.setItem("userId", currentId);
+            axios
+              .get(`${BASE_URL}/api/user-liked/${currentId}`, {
+                withCredentials: true,
+              })
+              .then((res) => setLikedMovies(res.data || []))
+              .catch(console.error);
+            axios
+              .get(`${BASE_URL}/api/user-saved/${currentId}`, {
+                withCredentials: true,
+              })
+              .then((res) => setSavedMovies(res.data || []))
+              .catch(console.error);
+          }
+        }
+      })
+      .catch((err) => console.error("Profile fetch error:", err));
   }, [updatedAvatar]);
-  useEffect(() => {
-    axios
-      .get(`${BASE_URL}/api/user-liked/${userId}`, {
-        withCredentials: true,
-      })
-      .then(({ data }) => setLikedMovies(data))
-      .catch((err) => console.error(err));
-    axios
-      .get(`${BASE_URL}/api/user-saved/${userId}`, {
-        withCredentials: true,
-      })
-      .then(({ data }) => setSavedMovies(data))
-      .catch((err) => console.error(err));
-  }, [userId]);
-  const onReset = async (e: FormEvent<HTMLFormElement>) => {
+
+  // Handle personal info update
+  const handleUpdateInfo = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const datas = new FormData(e.currentTarget);
-    const resetCode = datas.get("reset-code") as string;
-    if (resetCode.length < 6) {
-      toast.error("Reset code must be at least 6 digits");
-      return;
+    try {
+      setEditLoading(true);
+      const res = await axios.put(`${BASE_URL}/api/user-update`, editFormData, {
+        withCredentials: true,
+      });
+      if (res.status === 200 || res.status === 202) {
+        toast.success(res.data.message || "Profil ma'lumotlari yangilandi");
+        setIsEditing(false);
+        if (res.data.user) {
+          setUser(res.data.user);
+        }
+      }
+    } catch (error: any) {
+      toast.error(
+        error.response?.data?.message || "Yangilashda xatolik yuz berdi",
+      );
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  // Handle password update
+  const handleUpdatePassword = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const oldPass = formData.get("currentPassword") as string;
+    const newPass = formData.get("newPassword") as string;
+    const confirmPass = formData.get("confirmPassword") as string;
+
+    if (newPass !== confirmPass) {
+      return toast.error("Yangi parollar bir-biriga mos kelmadi");
+    }
+
+    try {
+      setPasswordLoading(true);
+      const res = await axios.put(
+        `${BASE_URL}/api/user-pass`,
+        { oldPass, newPass },
+        { withCredentials: true },
+      );
+      if (res.status === 200 || res.status === 202) {
+        toast.success(res.data.message || "Parol muvaffaqiyatli yangilandi");
+        (e.target as HTMLFormElement).reset();
+      }
+    } catch (error: any) {
+      toast.error(
+        error.response?.data?.message || "Parolni o'zgartirishda xatolik",
+      );
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  // Handle set password (for OAuth users)
+  const handleSetPassword = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const pass = formData.get("password") as string;
+    const confirmPass = formData.get("confirm-password") as string;
+
+    if (pass !== confirmPass) {
+      return toast.error("Parollar bir-biriga mos kelmadi");
+    }
+
+    try {
+      const data = await axios.put(
+        `${BASE_URL}/api/user-set-pass`,
+        { password: pass },
+        { withCredentials: true },
+      );
+      if (data.status === 200) {
+        toast.success(data.data.message || "Parol o'rnatildi");
+        setTimeout(() => window.location.reload(), 1500);
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Xatolik yuz berdi");
+    }
+  };
+
+  // Handle reset PIN code
+  const handleResetPin = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const code = resetCode.join("");
+    if (code.length < 6) {
+      return toast.error("PIN kod kamida 6 raqamdan iborat bo'lishi kerak");
     }
     try {
       const { data } = await axios.post(
         `${BASE_URL}/api/reset-pass`,
-        {
-          resetPass: resetCode,
-          id: typeof window !== "undefined" ? localStorage.getItem("userId") : null
-        },
+        { resetPass: code },
         { withCredentials: true },
       );
-      toast.success(data.message || "Password reset successfully!");
-      (e.target as HTMLFormElement).reset();
+      toast.success(data.message || "Xavfsizlik PIN kodi saqlandi");
+      setResetCode(["", "", "", "", "", ""]);
+      if (user) setUser({ ...user, resetPass: "set" });
     } catch (error: any) {
-      console.error(error.response?.data?.message || "Failed to reset password");
+      toast.error(error.response?.data?.message || "PIN kodni saqlab bo'lmadi");
     }
   };
+
   const handleCodeChange = (index: number, value: string) => {
     if (value.length <= 1 && /^\d*$/.test(value)) {
       const newCode = [...resetCode];
       newCode[index] = value;
       setResetCode(newCode);
       if (value && index < 5) {
-        const nextInput = document.getElementById(`code-${index + 1}`);
+        const nextInput = document.getElementById(`pin-${index + 1}`);
         nextInput?.focus();
       }
     }
   };
-  const tabs = [
-    { id: "profile", name: "Profile", icon: IoPersonCircle },
-    { id: "saved", name: "Saved Movies", icon: IoSaveOutline },
-    { id: "liked", name: "Liked Movies", icon: IoHeartOutline },
-    { id: "security", name: "Security", icon: IoKeyOutline },
-  ];
-  const update = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    try {
-      const reset = await axios.put(
-        `${BASE_URL}/api/user-update`,
-        {
-          name: formData.get("name"),
-          email: formData.get("email"),
-          id: typeof window !== "undefined" ? localStorage.getItem("userId") : null
-        },
-        { withCredentials: true },
-      );
-      if (reset.status === 202) {
-        toast.success(reset.data.message);
-        setTimeout(() => window.location.reload(), 1500);
-      }
-    } catch (error: any) {
-      console.error(error.response?.data?.message || "Nimadir xato ketdi");
-    }
-  };
-  const updatePassword = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    if (formData.get("newPassword") !== formData.get("confirmPassword")) {
-      return toast.error("Yangi parolni to'g'ri kiriting");
-    }
-    try {
-      const reset = await axios.put(
-        `${BASE_URL}/api/user-pass`,
-        {
-          oldPass: formData.get("currentPassword"),
-          newPass: formData.get("newPassword"),
-          id: typeof window !== "undefined" ? localStorage.getItem("userId") : null
-        },
-        { withCredentials: true },
-      );
-      if (reset.status === 202) {
-        toast.success(reset.data.message);
-        setTimeout(() => window.location.reload(), 1500);
-      }
-    } catch (error: any) {
-      console.error(error.response?.data?.message || "Nimadir xato ketdi");
-    }
-  };
-  const handleSetPassword = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    if (formData.get("password") !== formData.get("confirm-password")) {
-      toast.error("Parollarni to'g'ri kiriting");
-    }
-    try {
-      const data = await axios.put(
-        `${BASE_URL}/api/user-set-pass/${userId}`,
-        { password: formData.get("password") },
-        { withCredentials: true },
-      );
-      if (data.status === 200) {
-        toast.success(data.data.message);
-        setTimeout(() => window.location.reload(), 1500);
-      }
-    } catch (error: any) {
-      console.error(error.response?.data?.message || "Nimadir xato ketdi");
-    }
-  };
-  // Like va Save funksiyalari
-  const handleLike = async (movie: any) => {
-    // Like qilish funksiyasi
-  };
+
+  // Quick Movie Handlers
   const handleUnlike = async (movieId: number) => {
-    // Likeni olib tashlash
+    try {
+      await axios.delete(`${BASE_URL}/api/un-liked-movie/${movieId}`, {
+        withCredentials: true,
+      });
+      setLikedMovies((prev) => prev.filter((m) => m.id !== movieId));
+      toast.success("Film yoqtirilganlardan o'chirildi");
+    } catch {
+      toast.error("Xatolik yuz berdi");
+    }
   };
-  const handleSave = async (movie: any) => {
-    // Save qilish
-  };
+
   const handleUnsave = async (movieId: number) => {
-    // Saveni olib tashlash
+    try {
+      await axios.delete(`${BASE_URL}/api/un-saved-movie/${movieId}`, {
+        withCredentials: true,
+      });
+      setSavedMovies((prev) => prev.filter((m) => m.id !== movieId));
+      toast.success("Film saqlanganlardan o'chirildi");
+    } catch {
+      toast.error("Xatolik yuz berdi");
+    }
   };
+
+  const tabs = [
+    {
+      id: "saved",
+      name: "Saqlanganlar",
+      icon: IoBookmarkOutline,
+      count: savedMovies.length,
+    },
+    {
+      id: "liked",
+      name: "Yoqtirilganlar",
+      icon: IoHeartOutline,
+      count: likedMovies.length,
+    },
+    { id: "info", name: "Shaxsiy Ma'lumotlar", icon: IoPersonCircleOutline },
+    { id: "security", name: "Xavfsizlik & Parol", icon: IoKeyOutline },
+    { id: "stats", name: "Faollik & Statistika", icon: IoBarChartOutline },
+  ];
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "2024";
+    return new Date(dateString).toLocaleDateString("uz-UZ", {
+      year: "numeric",
+      month: "short",
+    });
+  };
+
   return (
-    <div className="min-h-screen border border-black bg-black text-white">
+    <div className="min-h-screen bg-[#0c0c0e] text-white">
       <MenuBar />
-      <div className="max-w-380 mx-auto px-4 md:px-8 pt-24 pb-16">
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-8">
-          <div className="relative group">
-            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-linear-to-br from-red-600 to-red-800 flex items-center justify-center overflow-hidden">
-              {user?.avatar ? (
-                <Image
-                  src={user.avatar}
-                  alt={user.name}
-                  width={128}
-                  height={128}
-                  className="w-full h-full object-cover rounded-full"
-                />
-              ) : (
-                <span className="text-4xl md:text-5xl font-bold text-white">
-                  {user?.name?.charAt(0).toUpperCase()}
-                </span>
-              )}
-            </div>
-            <div className="absolute bottom-0 right-0">
-              <div className="relative">
-                <button className="bg-red-600 p-2 rounded-full hover:bg-red-700 transition-colors z-10 relative">
-                  <IoCameraOutline className="text-white text-lg" />
-                </button>
+
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
+        {/* ================= HERO PROFILE BANNER ================= */}
+        <div className="relative rounded-3xl bg-linear-to-b from-white/5 to-transparent border border-white/10 p-6 sm:p-8 backdrop-blur-md mb-8 overflow-hidden shadow-2xl">
+          {/* Ambient red backlight */}
+          <div className="absolute -top-24 -left-24 w-72 h-72 bg-red-600/15 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-6">
+            {/* Avatar with Camera upload button */}
+            <div className="relative group shrink-0">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-linear-to-br from-red-600 to-red-900 flex items-center justify-center overflow-hidden ring-2 ring-white/10 shadow-lg">
+                {user?.avatar ? (
+                  <Image
+                    src={user.avatar}
+                    alt={user.name || "User"}
+                    width={112}
+                    height={112}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-4xl font-extrabold text-white">
+                    {user?.name?.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+
+              {/* Upload Overlay */}
+              <div className="absolute -bottom-1 -right-1 bg-red-600 hover:bg-red-700 text-white p-2 rounded-xl shadow-lg transition-transform group-hover:scale-110 cursor-pointer">
+                <IoCameraOutline className="text-base" />
                 <UploadButton
-                  className="absolute w-33 h-33 cursor-pointer -top-23.5 -left-23.5 rounded-2xl opacity-0 z-50"
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                   endpoint="imageUploader"
                   onClientUploadComplete={(res) => {
                     const url = res[0].ufsUrl;
@@ -207,417 +281,579 @@ export default function ProfilePage() {
                       )
                       .then((res) => {
                         if (res.status === 200) {
-                          toast.success(res.data.message);
-                          setTimeout(() => window.location.reload(), 1500);
-                          setUpdatedAvatar(true);
+                          toast.success("Avatar yangilandi");
+                          setUpdatedAvatar((prev) => !prev);
                         }
                       })
-                      .catch((err) => console.error(`ERROR! ${err.message}`));
+                      .catch((err) => console.error(err));
                   }}
                   onUploadError={(error: Error) => {
-                    toast.error(`ERROR! ${error.message}`);
+                    toast.error(`Rasm yuklashda xatolik: ${error.message}`);
                   }}
                 />
               </div>
             </div>
-          </div>
-          <div className="flex-1">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">
-              {user?.name}
-            </h1>
-            <p className="text-gray-400 mb-4">{user?.email}</p>
-            <div className="flex gap-4 text-sm">
-              <div className="flex items-center gap-1 text-gray-300">
-                <IoFilmOutline />
-                <span>{savedMovies.length} Saved</span>
+
+            {/* User Meta Details */}
+            <div className="flex-1 text-center md:text-left">
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 mb-2">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
+                  {user?.name}
+                </h1>
+                {user?.role === "admin" ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-600/20 text-red-400 border border-red-500/30">
+                    <IoShieldCheckmarkOutline />
+                    Admin
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white/10 text-gray-300 border border-white/10">
+                    VIP Member
+                  </span>
+                )}
+                <span className="text-[11px] font-medium text-gray-400 capitalize px-2 py-0.5 rounded-md bg-white/5 border border-white/5">
+                  {user?.provider || "local"} hisob
+                </span>
               </div>
-              <div className="flex items-center gap-1 text-gray-300">
-                <IoHeartOutline />
-                <span>{likedMovies.length} Liked</span>
-              </div>
-              <div className="flex items-center gap-1 text-gray-300">
-                <IoTimeOutline />
-                <span>Member since 2024</span>
+
+              <p className="text-xs sm:text-sm text-gray-400 mb-4">
+                {user?.email}
+              </p>
+
+              {/* Quick Summary Chips */}
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs text-gray-300">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/3 border border-white/5">
+                  <IoFilmOutline className="text-amber-400" />
+                  <span className="font-semibold text-white">
+                    {savedMovies.length}
+                  </span>
+                  <span className="text-gray-400">Saqlangan</span>
+                </div>
+
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/3 border border-white/5">
+                  <IoHeartOutline className="text-pink-500" />
+                  <span className="font-semibold text-white">
+                    {likedMovies.length}
+                  </span>
+                  <span className="text-gray-400">Yoqtirilgan</span>
+                </div>
+
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/3 border border-white/5">
+                  <IoCalendarOutline className="text-blue-400" />
+                  <span className="text-gray-400">A'zolik:</span>
+                  <span className="font-semibold text-white">
+                    {formatDate(user?.createdAt)}
+                  </span>
+                </div>
               </div>
             </div>
+
+            {/* Quick Action Button */}
+            <button
+              onClick={() => {
+                setActiveTab("info");
+                setIsEditing(!isEditing);
+              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-gray-200 hover:text-white border border-white/10 transition-colors cursor-pointer shrink-0"
+            >
+              <IoPencilOutline className="text-sm" />
+              <span>
+                {isEditing ? "Tahrirlashni yopish" : "Profilni tahrirlash"}
+              </span>
+            </button>
           </div>
-          <button
-            onClick={() => setIsEditing(!isEditing)}
-            className="px-6 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors"
-          >
-            Edit Profile
-          </button>
         </div>
-        <div className="border-b border-gray-800 mb-8 overflow-x-auto">
-          <div className="flex gap-8 min-w-max">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 py-4 border-b-2 transition-colors ${
-                  activeTab === tab.id
-                    ? "border-red-600 text-white"
-                    : "border-transparent text-gray-400 hover:text-white"
-                }`}
-              >
-                <tab.icon className="text-xl" />
-                <span>{tab.name}</span>
-              </button>
-            ))}
-          </div>
+
+        {/* ================= INTERACTIVE TAB CONTROLS ================= */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-8 scrollbar-hide border-b border-white/5">
+          {tabs.map((tab: any) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
+                activeTab === tab.id
+                  ? "bg-red-600 text-white border-red-500 shadow-lg shadow-red-600/30"
+                  : "bg-white/2 text-gray-400 border-transparent hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <tab.icon className="text-base" />
+              <span>{tab.name}</span>
+              {typeof tab.count === "number" && (
+                <span
+                  className={`text-[11px] px-1.5 py-0.2 rounded-full font-bold ${
+                    activeTab === tab.id
+                      ? "bg-white text-red-600"
+                      : "bg-white/10 text-gray-300"
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
         </div>
-        <div className="mt-8">
-          {activeTab === "profile" && (
-            <div className="space-y-6">
-              <div className="bg-gray-900/50 rounded-lg p-6">
-                <form action="" method="POST" onSubmit={update}>
-                  <h3 className="text-xl font-semibold mb-4">
-                    Personal Information
-                  </h3>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="name" className="text-sm text-gray-400">
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        defaultValue={user?.name}
-                        name="name"
-                        id="name"
-                        disabled={!isEditing}
-                        className="w-full mt-1 px-4 py-3 bg-gray-800 rounded-md text-white disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-red-600"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="email" className="text-sm text-gray-400">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        id="email"
-                        defaultValue={user?.email}
-                        disabled={!isEditing}
-                        className="w-full mt-1 px-4 py-3 bg-gray-800 rounded-md text-white disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-red-600"
-                      />
-                    </div>
-                  </div>
-                  {isEditing && (
-                    <div className="mt-6 flex gap-3">
-                      <button
-                        type="submit"
-                        className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                      >
-                        Save Changes
-                      </button>
-                      <button
-                        onClick={() => setIsEditing(false)}
-                        className="px-6 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  )}
-                </form>
-              </div>
+
+        {/* ================= TAB 1: SAVED MOVIES ================= */}
+        {activeTab === "saved" && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <IoBookmarkOutline className="text-amber-500 text-xl" />
+                <span>Tomosha Ro'yxatim (Saved Watchlist)</span>
+              </h2>
+              <span className="text-xs text-gray-400">
+                Jami: {savedMovies.length} ta
+              </span>
             </div>
-          )}
-          {activeTab === "saved" && (
-            <div>
-              <h3 className="text-xl font-semibold mb-4">Saved Movies</h3>
-              {savedMovies.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  {savedMovies.map((movie) => (
-                    <MovieCard
-                      key={movie.id}
-                      movie={movie}
-                      isLiked={false}
-                      isSaved={true}
-                      onLike={handleLike}
-                      onSave={handleSave}
-                      onUnlike={handleUnlike}
-                      onUnsave={handleUnsave}
-                      layout="grid"
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16">
-                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-800/50 rounded-full mb-4">
-                    <IoBookmark className="text-4xl text-gray-600" />
-                  </div>
-                  <h4 className="text-xl text-gray-300 font-medium mb-2">
-                    No saved movies yet
-                  </h4>
-                  <p className="text-gray-500 text-sm max-w-sm mx-auto">
-                    Movies you save will appear here. Click the bookmark icon on
-                    any movie to add it to your list!
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-          {activeTab === "liked" && (
-            <div>
-              <h3 className="text-xl font-semibold mb-4">Liked Movies</h3>
-              {likedMovies.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  {likedMovies.map((movie) => (
-                    <MovieCard
-                      key={movie.id}
-                      movie={movie}
-                      isLiked={true}
-                      isSaved={false}
-                      onLike={handleLike}
-                      onSave={handleSave}
-                      onUnlike={handleUnlike}
-                      onUnsave={handleUnsave}
-                      layout="grid"
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16">
-                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-800/50 rounded-full mb-4">
-                    <IoHeartOutline className="text-4xl text-gray-600" />
-                  </div>
-                  <h4 className="text-xl text-gray-300 font-medium mb-2">
-                    No liked movies yet
-                  </h4>
-                  <p className="text-gray-500 text-sm max-w-sm mx-auto">
-                    Movies you like will appear here. Start exploring and like
-                    your favorite movies!
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-          {activeTab === "security" && (
-            <div className="space-y-6">
-              {!user?.password && (
-                <div className="bg-gray-900/50 rounded-lg p-6 border border-yellow-600/30">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 bg-yellow-600/20 rounded-full flex items-center justify-center">
-                      <IoLockOpenOutline className="text-yellow-500 text-xl" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-white">
-                      Set Password
-                    </h3>
-                  </div>
-                  <form
-                    onSubmit={handleSetPassword}
-                    className="max-w-md space-y-5"
+
+            {savedMovies.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {savedMovies.map((movie) => (
+                  <div
+                    key={movie.id}
+                    className="relative bg-[#121216] rounded-xl overflow-hidden border border-white/5 group hover:border-amber-500/40 transition-all flex flex-col justify-between"
                   >
-                    <div className="space-y-2">
-                      <label
-                        htmlFor="new-password"
-                        className="text-sm text-gray-300 block"
-                      >
-                        New Password
-                      </label>
-                      <input
-                        type="password"
-                        id="new-password"
-                        className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-gray-700 focus:border-yellow-500 focus:outline-none transition-colors"
-                        placeholder="Enter new password"
-                        required
-                        name="password"
-                        minLength={6}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label
-                        htmlFor="confirm-password"
-                        className="text-sm text-gray-300 block"
-                      >
-                        Confirm Password
-                      </label>
-                      <input
-                        type="password"
-                        id="confirm-password"
-                        className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-gray-700 focus:border-yellow-500 focus:outline-none transition-colors"
-                        placeholder="Confirm new password"
-                        required
-                        name="confirm-password"
-                        minLength={6}
-                      />
-                    </div>
-                    <div className="bg-gray-800/50 p-4 rounded-md space-y-2">
-                      <p className="text-sm text-gray-300">
-                        Password requirements:
-                      </p>
-                      <ul className="text-xs text-gray-400 space-y-1 list-disc pl-4">
-                        <li>At least 6 characters long</li>
-                        <li>Include at least one number</li>
-                        <li>Include at least one uppercase letter</li>
-                        <li>Include at least one lowercase letter</li>
-                      </ul>
-                    </div>
-                    <button
-                      type="submit"
-                      className="w-full px-6 py-3 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors font-medium"
-                    >
-                      Set Password
-                    </button>
-                  </form>
-                </div>
-              )}
-              {!user?.resetPass && user?.password && (
-                <div className="bg-gray-900/50 rounded-lg p-6">
-                  <h3 className="text-xl font-semibold mb-6">Reset Password</h3>
-                  <form onSubmit={onReset} className="max-w-md space-y-6">
-                    <div>
-                      <label className="block text-sm text-gray-400 mb-2">
-                        Enter 6-digit reset code
-                      </label>
-                      <div className="flex gap-2 justify-between">
-                        {resetCode.map((digit, index) => (
-                          <input
-                            key={index}
-                            id={`code-${index}`}
-                            type="text"
-                            maxLength={1}
-                            value={digit}
-                            onChange={(e) =>
-                              handleCodeChange(index, e.target.value)
-                            }
-                            className="w-12 h-12 text-center bg-gray-800 rounded-md text-white text-xl font-bold focus:outline-none focus:ring-2 focus:ring-red-600"
-                          />
-                        ))}
+                    <div className="aspect-2/3 relative bg-gray-900 overflow-hidden">
+                      {movie.poster_path ? (
+                        <Image
+                          src={`https://image.tmdb.org/t/p/w400${movie.poster_path}`}
+                          alt={movie.title || "Film"}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xs text-gray-600">
+                          Rasm yo'q
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-linear-to-t from-black via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <Link
+                          href={`/${movie.id}`}
+                          className="p-2.5 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-lg transition-transform hover:scale-110"
+                          title="Tomosha qilish"
+                        >
+                          <IoPlayOutline className="text-lg" />
+                        </Link>
                       </div>
-                      <input
-                        type="hidden"
-                        name="reset-code"
-                        value={resetCode.join("")}
-                      />
                     </div>
-                    <div className="text-sm text-gray-400">
-                      <p className="flex items-center gap-2">
-                        <IoCheckmarkCircle className="text-green-500" />
-                        Code must be exactly 6 digits
-                      </p>
+
+                    <div className="p-3">
+                      <h4 className="text-xs font-semibold text-white line-clamp-1 mb-1">
+                        {movie.title}
+                      </h4>
+                      <div className="flex items-center justify-between text-[11px] text-gray-400">
+                        <span className="flex items-center gap-0.5 text-amber-400 font-medium">
+                          <IoStarOutline className="text-xs" />
+                          {movie.vote_average
+                            ? movie.vote_average.toFixed(1)
+                            : "N/A"}
+                        </span>
+                        <button
+                          onClick={() => handleUnsave(movie.id)}
+                          title="Ro'yxatdan o'chirish"
+                          className="text-gray-500 hover:text-red-400 transition-colors p-1"
+                        >
+                          <IoTrashOutline className="text-sm" />
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      type="submit"
-                      className="w-full px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium"
-                    >
-                      Reset Password
-                    </button>
-                  </form>
-                </div>
-              )}
-              {user?.password && (
-                <div className="bg-gray-900/50 rounded-lg p-6">
-                  <h3 className="text-xl font-semibold mb-6">
-                    Change Password
-                  </h3>
-                  <form
-                    onSubmit={updatePassword}
-                    className="max-w-md space-y-5"
-                  >
-                    <div className="space-y-2">
-                      <label
-                        htmlFor="current-password"
-                        className="text-sm text-gray-300 block"
-                      >
-                        Current Password
-                      </label>
-                      <input
-                        type="password"
-                        name="currentPassword"
-                        id="current-password"
-                        className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-gray-700 focus:border-red-600 focus:outline-none transition-colors"
-                        placeholder="Enter current password"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label
-                        htmlFor="new-password"
-                        className="text-sm text-gray-300 block"
-                      >
-                        New Password
-                      </label>
-                      <input
-                        type="password"
-                        name="newPassword"
-                        id="new-password"
-                        className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-gray-700 focus:border-red-600 focus:outline-none transition-colors"
-                        placeholder="Enter new password"
-                        required
-                        minLength={6}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label
-                        htmlFor="confirm-password"
-                        className="text-sm text-gray-300 block"
-                      >
-                        Confirm New Password
-                      </label>
-                      <input
-                        type="password"
-                        name="confirmPassword"
-                        id="confirm-password"
-                        className="w-full h-12 px-4 bg-gray-800 text-white rounded-md border border-gray-700 focus:border-red-600 focus:outline-none transition-colors"
-                        placeholder="Confirm new password"
-                        required
-                        minLength={6}
-                      />
-                    </div>
-                    <div className="bg-gray-800/50 p-4 rounded-md space-y-2">
-                      <p className="text-sm text-gray-300">
-                        Password requirements:
-                      </p>
-                      <ul className="text-xs text-gray-400 space-y-1 list-disc pl-4">
-                        <li>At least 6 characters long</li>
-                        <li>Include at least one number</li>
-                        <li>Include at least one uppercase letter</li>
-                        <li>Include at least one lowercase letter</li>
-                      </ul>
-                    </div>
-                    <button
-                      type="submit"
-                      className="w-full px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium"
-                    >
-                      Update Password
-                    </button>
-                  </form>
-                </div>
-              )}
-              <div className="bg-gray-900/50 rounded-lg p-6">
-                <h3 className="text-xl font-semibold mb-4">
-                  Security Settings
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 bg-white/1 rounded-2xl border border-white/5">
+                <IoBookmarkOutline className="text-5xl text-gray-600 mx-auto mb-3" />
+                <h3 className="text-base font-bold text-gray-300">
+                  Saqlangan filmlar mavjud emas
                 </h3>
-                <div className="space-y-4">
-                  <label className="flex items-center justify-between cursor-pointer">
-                    <span className="text-gray-300">
-                      Two-factor authentication
-                    </span>
-                    <div className="relative">
-                      <input type="checkbox" className="sr-only peer" />
-                      <div className="w-11 h-6 bg-gray-700 rounded-full peer peer-checked:bg-red-600 transition-colors"></div>
-                      <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                <p className="text-xs text-gray-500 max-w-sm mx-auto mt-1 mb-5">
+                  Istalgan film kartochkasidagi xatcho'p (bookmark) belgisini
+                  bosib, uni tomosha ro'yxatingizga qo'shing.
+                </p>
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-lg shadow-red-600/30 transition-all"
+                >
+                  <span>Filmlarni kashf qilish</span>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ================= TAB 2: LIKED MOVIES ================= */}
+        {activeTab === "liked" && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <IoHeartOutline className="text-pink-500 text-xl" />
+                <span>Yoqtirilgan Filmlar (Favorites)</span>
+              </h2>
+              <span className="text-xs text-gray-400">
+                Jami: {likedMovies.length} ta
+              </span>
+            </div>
+
+            {likedMovies.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {likedMovies.map((movie) => (
+                  <div
+                    key={movie.id}
+                    className="relative bg-[#121216] rounded-xl overflow-hidden border border-white/5 group hover:border-pink-500/40 transition-all flex flex-col justify-between"
+                  >
+                    <div className="aspect-2/3 relative bg-gray-900 overflow-hidden">
+                      {movie.poster_path ? (
+                        <Image
+                          src={`https://image.tmdb.org/t/p/w400${movie.poster_path}`}
+                          alt={movie.title || "Film"}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xs text-gray-600">
+                          Rasm yo'q
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-linear-to-t from-black via-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <Link
+                          href={`/${movie.id}`}
+                          className="p-2.5 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-lg transition-transform hover:scale-110"
+                          title="Tomosha qilish"
+                        >
+                          <IoPlayOutline className="text-lg" />
+                        </Link>
+                      </div>
                     </div>
-                  </label>
-                  <label className="flex items-center justify-between cursor-pointer">
-                    <span className="text-gray-300">Login notifications</span>
-                    <div className="relative">
-                      <input
-                        type="checkbox"
-                        className="sr-only peer"
-                        defaultChecked
-                      />
-                      <div className="w-11 h-6 bg-gray-700 rounded-full peer peer-checked:bg-red-600 transition-colors"></div>
-                      <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+
+                    <div className="p-3">
+                      <h4 className="text-xs font-semibold text-white line-clamp-1 mb-1">
+                        {movie.title}
+                      </h4>
+                      <div className="flex items-center justify-between text-[11px] text-gray-400">
+                        <span className="flex items-center gap-0.5 text-amber-400 font-medium">
+                          <IoStarOutline className="text-xs" />
+                          {movie.vote_average
+                            ? movie.vote_average.toFixed(1)
+                            : "N/A"}
+                        </span>
+                        <button
+                          onClick={() => handleUnlike(movie.id)}
+                          title="Yoqtirilganlardan o'chirish"
+                          className="text-gray-500 hover:text-pink-400 transition-colors p-1"
+                        >
+                          <IoTrashOutline className="text-sm" />
+                        </button>
+                      </div>
                     </div>
-                  </label>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 bg-white/1 rounded-2xl border border-white/5">
+                <IoHeartOutline className="text-5xl text-gray-600 mx-auto mb-3" />
+                <h3 className="text-base font-bold text-gray-300">
+                  Yoqtirilgan filmlar mavjud emas
+                </h3>
+                <p className="text-xs text-gray-500 max-w-sm mx-auto mt-1 mb-5">
+                  Sizga ma'qul kelgan filmlarga yurakcha (like) bosib, ularni
+                  shaxsiy to'plamingizga jamlang.
+                </p>
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-lg shadow-red-600/30 transition-all"
+                >
+                  <span>Filmlarni kashf qilish</span>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ================= TAB 3: PERSONAL INFORMATION ================= */}
+        {activeTab === "info" && (
+          <div className="max-w-2xl bg-[#121216] rounded-2xl border border-white/5 p-6 sm:p-8">
+            <h3 className="text-lg font-bold text-white mb-1">
+              Shaxsiy Ma'lumotlar
+            </h3>
+            <p className="text-xs text-gray-400 mb-6">
+              Platformadagi ismingiz va email manzilingizni yangilang
+            </p>
+
+            <form onSubmit={handleUpdateInfo} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                  To'liq Ism
+                </label>
+                <input
+                  type="text"
+                  required
+                  disabled={!isEditing}
+                  value={editFormData.name}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, name: e.target.value })
+                  }
+                  className="w-full h-11 px-4 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-red-600 disabled:opacity-50 transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                  Email Manzili
+                </label>
+                <input
+                  type="email"
+                  required
+                  disabled={!isEditing}
+                  value={editFormData.email}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, email: e.target.value })
+                  }
+                  className="w-full h-11 px-4 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-red-600 disabled:opacity-50 transition-colors"
+                />
+              </div>
+
+              <div className="pt-4 flex items-center justify-between">
+                {!isEditing ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(true)}
+                    className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    Ma'lumotlarni o'zgartirish
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditing(false)}
+                      className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-medium transition-colors cursor-pointer"
+                    >
+                      Bekor qilish
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={editLoading}
+                      className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-md shadow-red-600/30 transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      {editLoading
+                        ? "Saqlanmoqda..."
+                        : "O'zgarishlarni saqlash"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* ================= TAB 4: SECURITY & PASSWORD ================= */}
+        {activeTab === "security" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Password Management Card */}
+            <div className="bg-[#121216] rounded-2xl border border-white/5 p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <IoKeyOutline className="text-red-500 text-lg" />
+                <h3 className="text-base font-semibold text-white">
+                  Parolni Yangilash
+                </h3>
+              </div>
+
+              {user?.password ? (
+                <form onSubmit={handleUpdatePassword} className="space-y-3.5">
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">
+                      Amaldagi Parol
+                    </label>
+                    <input
+                      type="password"
+                      name="currentPassword"
+                      required
+                      placeholder="••••••••"
+                      className="w-full h-10 px-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-red-600"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">
+                      Yangi Parol
+                    </label>
+                    <input
+                      type="password"
+                      name="newPassword"
+                      required
+                      minLength={6}
+                      placeholder="Kamida 6 belgi"
+                      className="w-full h-10 px-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-red-600"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">
+                      Yangi Parolni Tasdiqlang
+                    </label>
+                    <input
+                      type="password"
+                      name="confirmPassword"
+                      required
+                      minLength={6}
+                      placeholder="••••••••"
+                      className="w-full h-10 px-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-red-600"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={passwordLoading}
+                    className="w-full mt-2 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-md shadow-red-600/30 transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    {passwordLoading ? "Yangilanmoqda..." : "Parolni Yangilash"}
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleSetPassword} className="space-y-3.5">
+                  <p className="text-xs text-yellow-500/90 mb-2">
+                    Siz Google yoki GitHub orqali ro'yxatdan o'tgansiz. Tizimga
+                    email/parol bilan ham kirish uchun yangi parol o'rnating.
+                  </p>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">
+                      Parol
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      required
+                      minLength={6}
+                      className="w-full h-10 px-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-yellow-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">
+                      Parolni Tasdiqlang
+                    </label>
+                    <input
+                      type="password"
+                      name="confirm-password"
+                      required
+                      minLength={6}
+                      className="w-full h-10 px-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-yellow-500"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full mt-2 py-2.5 rounded-xl bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-semibold transition-all cursor-pointer"
+                  >
+                    Parol O'rnatish
+                  </button>
+                </form>
+              )}
+            </div>
+
+            {/* 6-digit Reset PIN Card */}
+            <div className="bg-[#121216] rounded-2xl border border-white/5 p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <IoLockOpenOutline className="text-red-500 text-lg" />
+                <h3 className="text-base font-semibold text-white">
+                  6-Xonali Qayta Tiklash PIN Kodi
+                </h3>
+              </div>
+
+              <p className="text-xs text-gray-400 mb-4">
+                Parolingizni unutgan taqdirda tezda qayta tiklash uchun shaxsiy
+                6 xonali maxfiy raqamingizni belgilang.
+              </p>
+
+              <form onSubmit={handleResetPin} className="space-y-4">
+                <div className="flex gap-2 justify-center py-2">
+                  {resetCode.map((digit, idx) => (
+                    <input
+                      key={idx}
+                      id={`pin-${idx}`}
+                      type="text"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleCodeChange(idx, e.target.value)}
+                      className="w-10 h-11 text-center bg-white/5 border border-white/10 rounded-xl text-white text-lg font-bold focus:outline-none focus:border-red-600 transition-colors"
+                    />
+                  ))}
                 </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  PIN Kodni Saqlash
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ================= TAB 5: WATCH STATS ================= */}
+        {activeTab === "stats" && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-[#121216] p-5 rounded-2xl border border-white/5">
+                <span className="text-xs text-gray-400 uppercase tracking-wider">
+                  Saqlangan Filmlar
+                </span>
+                <div className="text-3xl font-extrabold text-white mt-2">
+                  {savedMovies.length}
+                </div>
+                <p className="text-[11px] text-amber-400 mt-1">
+                  Watchlist to'plamida
+                </p>
+              </div>
+
+              <div className="bg-[#121216] p-5 rounded-2xl border border-white/5">
+                <span className="text-xs text-gray-400 uppercase tracking-wider">
+                  Yoqtirilgan Filmlar
+                </span>
+                <div className="text-3xl font-extrabold text-pink-500 mt-2">
+                  {likedMovies.length}
+                </div>
+                <p className="text-[11px] text-pink-400 mt-1">Like bosilgan</p>
+              </div>
+
+              <div className="bg-[#121216] p-5 rounded-2xl border border-white/5">
+                <span className="text-xs text-gray-400 uppercase tracking-wider">
+                  Jami Faollik
+                </span>
+                <div className="text-3xl font-extrabold text-white mt-2">
+                  {savedMovies.length + likedMovies.length}
+                </div>
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Interaksiyalar soni
+                </p>
+              </div>
+
+              <div className="bg-[#121216] p-5 rounded-2xl border border-white/5">
+                <span className="text-xs text-gray-400 uppercase tracking-wider">
+                  Hisob Statusi
+                </span>
+                <div className="text-lg font-bold text-emerald-400 mt-3 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Faol A'zo</span>
+                </div>
+                <p className="text-[11px] text-gray-400 mt-1">
+                  {user?.provider || "Local"} ulanish
+                </p>
               </div>
             </div>
-          )}
-        </div>
-      </div>
+
+            <div className="bg-[#121216] rounded-2xl border border-white/5 p-6">
+              <h3 className="text-sm font-semibold text-white mb-2">
+                Tavsiya va Yangilanishlar
+              </h3>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                Netflix platformasi sizning yoqtirgan va saqlagan filmlaringiz
+                asosida bosh sahifadagi karusellarda shaxsiy tavsiyalarni
+                shakllantiradi. Qancha ko'p film yoqtirsangiz, siz uchun
+                qiziqarli yangi kinolar shunchalik aniq tavsiya etiladi.
+              </p>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

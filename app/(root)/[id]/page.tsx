@@ -11,12 +11,18 @@ import {
   IoFilmOutline,
   IoPeopleOutline,
   IoCalendarOutline,
+  IoHeart,
+  IoHeartOutline,
+  IoBookmark,
+  IoBookmarkOutline,
 } from "react-icons/io5";
 import { FaImdb } from "react-icons/fa";
 import Loading from "@/components/loading";
 import { MovieDetails } from "@/types";
 import Link from "next/link";
 import { API_KEY } from "@/utils";
+import { useMovieActions } from "@/hooks/useMovieActions";
+
 export default function MoviePage() {
   const params = useParams();
   const id = params.id as string;
@@ -26,6 +32,14 @@ export default function MoviePage() {
     "about",
   );
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const {
+    likedMovies,
+    savedMovies,
+    handleLike,
+    handleSave,
+    handleUnlike,
+    handleUnsave,
+  } = useMovieActions();
   useEffect(() => {
     const fetchMovie = async () => {
       try {
@@ -77,42 +91,47 @@ export default function MoviePage() {
     );
   }
   const trailer =
-    movie.videos.results.find(
+    movie.videos?.results?.find(
       (video) =>
         video.site === "YouTube" && video.type === "Trailer" && video.official,
     ) ||
-    movie.videos.results.find(
+    movie.videos?.results?.find(
       (video) => video.site === "YouTube" && video.type === "Trailer",
     );
-  const mainCast = movie.credits.cast
-    .sort((a, b) => a.order - b.order)
-    .slice(0, 15)
-    .filter((member) => member.profile_path);
-  const importantCrew = movie.credits.crew
-    .filter((member) =>
-      [
-        "Director",
-        "Writer",
-        "Screenplay",
-        "Producer",
-        "Music",
-        "Cinematography",
-        "Editor",
-      ].includes(member.job),
-    )
-    .slice(0, 12)
-    .filter((v, i, a) => a.findIndex((t) => t.job === v.job) === i);
-  const posters = movie.images.posters.slice(0, 5);
-  const backdrops = movie.images.backdrops.slice(0, 6);
-  const formatCurrency = (amount: number) => {
+  const mainCast = movie.credits?.cast
+    ? [...movie.credits.cast]
+        .sort((a, b) => a.order - b.order)
+        .slice(0, 15)
+        .filter((member) => member.profile_path)
+    : [];
+  const importantCrew = movie.credits?.crew
+    ? movie.credits.crew
+        .filter((member) =>
+          [
+            "Director",
+            "Writer",
+            "Screenplay",
+            "Producer",
+            "Music",
+            "Cinematography",
+            "Editor",
+          ].includes(member.job),
+        )
+        .slice(0, 12)
+        .filter((v, i, a) => a.findIndex((t) => t.job === v.job) === i)
+    : [];
+  const posters = movie.images?.posters?.slice(0, 5) || [];
+  const backdrops = movie.images?.backdrops?.slice(0, 6) || [];
+  const formatCurrency = (amount: number = 0) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(amount || 0);
   };
-  const formatRuntime = (minutes: number) => {
+  const formatRuntime = (minutes: number = 0) => {
+    if (!minutes) return "N/A";
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${hours}h ${mins}m`;
@@ -122,27 +141,37 @@ export default function MoviePage() {
       <MenuBar />
       <div className="relative h-[70vh] min-h-150 w-full">
         <div className="absolute inset-0">
-          <Image
-            src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
-            alt={movie.title}
-            fill
-            className="object-cover"
-            priority
-          />
+          {movie.backdrop_path ? (
+            <Image
+              src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
+              alt={movie.title || "Movie Backdrop"}
+              fill
+              className="object-cover"
+              priority
+            />
+          ) : (
+            <div className="w-full h-full bg-linear-to-br from-gray-900 to-black" />
+          )}
           <div className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-transparent" />
           <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent" />
         </div>
         <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16">
           <div className="max-w-7xl mx-auto relative">
             <div className="flex flex-col md:flex-row gap-8 items-end relative">
-              <div className="hidden md:block w-64 rounded-lg overflow-hidden shadow-2xl">
-                <Image
-                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                  alt={movie.title}
-                  width={256}
-                  height={384}
-                  className="w-full h-auto"
-                />
+              <div className="hidden md:block w-64 rounded-lg overflow-hidden shadow-2xl bg-gray-800">
+                {movie.poster_path ? (
+                  <Image
+                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                    alt={movie.title || "Movie Poster"}
+                    width={256}
+                    height={384}
+                    className="w-full h-auto"
+                  />
+                ) : (
+                  <div className="w-64 h-96 flex items-center justify-center text-gray-500">
+                    No Poster
+                  </div>
+                )}
               </div>
               <div className="flex-1">
                 <h1 className="text-4xl md:text-5xl font-bold mb-2">
@@ -157,15 +186,19 @@ export default function MoviePage() {
                   <div className="flex items-center gap-1">
                     <IoStarOutline className="text-yellow-500" />
                     <span className="font-bold">
-                      {movie.vote_average.toFixed(1)}
+                      {(movie.vote_average ?? 0).toFixed(1)}
                     </span>
                     <span className="text-gray-400 text-sm">
-                      ({movie.vote_count})
+                      ({movie.vote_count ?? 0})
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <IoCalendarOutline />
-                    <span>{new Date(movie.release_date).getFullYear()}</span>
+                    <span>
+                      {movie.release_date
+                        ? new Date(movie.release_date).getFullYear()
+                        : "N/A"}
+                    </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <IoTimeOutline />
@@ -173,7 +206,7 @@ export default function MoviePage() {
                   </div>
                   <div className="flex items-center gap-1">
                     <IoFilmOutline />
-                    <span>{movie.status}</span>
+                    <span>{movie.status || "Released"}</span>
                   </div>
                   {movie.imdb_id && (
                     <a
@@ -187,7 +220,7 @@ export default function MoviePage() {
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2 mb-6">
-                  {movie.genres.map((genre) => (
+                  {(movie.genres || []).map((genre) => (
                     <span
                       key={genre.id}
                       className="px-3 py-1 bg-gray-800 rounded-full text-sm"
@@ -197,17 +230,63 @@ export default function MoviePage() {
                   ))}
                 </div>
                 <p className="text-gray-300 max-w-3xl mb-6">{movie.overview}</p>
-                {trailer && (
-                  <a
-                    href={`https://www.youtube.com/watch?v=${trailer.key}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                <div className="flex flex-wrap items-center gap-3">
+                  {trailer && (
+                    <a
+                      href={`https://www.youtube.com/watch?v=${trailer.key}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-lg shadow-red-600/30 transition-all cursor-pointer"
+                    >
+                      <IoPlay className="text-xl" />
+                      <span>Treylerni ko'rish</span>
+                    </a>
+                  )}
+
+                  <button
+                    onClick={() =>
+                      likedMovies.includes(movie.id)
+                        ? handleUnlike(movie.id)
+                        : handleLike(movie as any)
+                    }
+                    className={`inline-flex items-center gap-2 px-4 py-3 rounded-xl border transition-all cursor-pointer ${
+                      likedMovies.includes(movie.id)
+                        ? "bg-pink-600/20 text-pink-400 border-pink-500/40"
+                        : "bg-white/10 hover:bg-white/15 text-white border-white/10"
+                    }`}
                   >
-                    <IoPlay />
-                    Watch Trailer
-                  </a>
-                )}
+                    {likedMovies.includes(movie.id) ? (
+                      <IoHeart className="text-lg text-pink-500" />
+                    ) : (
+                      <IoHeartOutline className="text-lg" />
+                    )}
+                    <span className="text-sm font-medium">
+                      {likedMovies.includes(movie.id) ? "Yoqtirildi" : "Yoqtirish"}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      savedMovies.includes(movie.id)
+                        ? handleUnsave(movie.id)
+                        : handleSave(movie as any)
+                    }
+                    className={`inline-flex items-center gap-2 px-4 py-3 rounded-xl border transition-all cursor-pointer ${
+                      savedMovies.includes(movie.id)
+                        ? "bg-amber-600/20 text-amber-400 border-amber-500/40"
+                        : "bg-white/10 hover:bg-white/15 text-white border-white/10"
+                    }`}
+                  >
+                    {savedMovies.includes(movie.id) ? (
+                      <IoBookmark className="text-lg text-amber-500" />
+                    ) : (
+                      <IoBookmarkOutline className="text-lg" />
+                    )}
+                    <span className="text-sm font-medium">
+                      {savedMovies.includes(movie.id) ? "Saqlangan" : "Saqlash"}
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -260,7 +339,7 @@ export default function MoviePage() {
                 <div>
                   <h3 className="text-gray-400 text-sm">Release Date</h3>
                   <p>
-                    {new Date(movie.release_date).toLocaleDateString("en-US", {
+                    {new Date(movie?.release_date as string).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "long",
                       day: "numeric",
@@ -338,7 +417,7 @@ export default function MoviePage() {
             </div>
             <h2 className="text-2xl font-bold mt-12 mb-6">Crew</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {movie.credits.crew.slice(0, 20).map((member) => (
+              {movie && movie?.credits?.crew.slice(0, 20).map((member) => (
                 <div key={`${member.id}-${member.job}`} className="text-sm">
                   <span className="font-medium">{member.name}</span>
                   <span className="text-gray-400"> - {member.job}</span>

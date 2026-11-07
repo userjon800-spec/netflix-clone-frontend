@@ -1,4 +1,21 @@
 @import "tailwindcss";
-::-webkit-scrollbar{
-    display: none;
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+  background-color: #0c0c0e;
+}
+
+body {
+  overflow-x: hidden;
+  background-color: #0c0c0e;
+}
+
+::selection {
+  background-color: #e50914;
+  color: #ffffff;
+}
+
+::-webkit-scrollbar {
+  display: none;
 }

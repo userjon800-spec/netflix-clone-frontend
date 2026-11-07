@@ -2,7 +2,11 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { IoHomeOutline, IoRefreshOutline, IoAlertCircleOutline } from "react-icons/io5";
+import {
+  IoHomeOutline,
+  IoRefreshOutline,
+  IoAlertCircleOutline,
+} from "react-icons/io5";
 export default function GlobalError({
   error,
   reset,
@@ -63,7 +67,9 @@ export default function GlobalError({
             </div>
             {process.env.NODE_ENV === "development" && (
               <div className="bg-red-950/30 border border-red-900/50 rounded-lg p-4 mb-8 text-left overflow-auto max-h-60">
-                <p className="text-red-400 font-mono text-sm mb-2">Stack trace:</p>
+                <p className="text-red-400 font-mono text-sm mb-2">
+                  Stack trace:
+                </p>
                 <pre className="text-xs text-gray-400 font-mono whitespace-pre-wrap">
                   {error.stack}
                 </pre>
@@ -88,7 +94,9 @@ export default function GlobalError({
             <p className="mt-8 text-sm text-gray-500">
               If the problem persists, please{" "}
               <button
-                onClick={() => window.location.href = "mailto:support@netflix.com"}
+                onClick={() =>
+                  (window.location.href = "mailto:support@netflix.com")
+                }
                 className="text-red-500 hover:underline"
               >
                 contact support

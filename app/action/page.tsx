@@ -11,13 +11,21 @@ import {
   IoBookmarkOutline,
   IoFilterOutline,
 } from "react-icons/io5";
+import { useMovieActions } from "@/hooks/useMovieActions";
 import { BASE_URL } from "@/utils";
 export default function ActionPage() {
   const [action, setAction] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
-  const [likedMovies, setLikedMovies] = useState<number[]>([]);
-  const [savedMovies, setSavedMovies] = useState<number[]>([]);
   const [sortBy, setSortBy] = useState<string>("popularity");
+  const {
+    likedMovies,
+    savedMovies,
+    handleLike,
+    handleSave,
+    handleUnlike,
+    handleUnsave,
+  } = useMovieActions();
+
   useEffect(() => {
     const fetchActionMovies = async () => {
       try {
@@ -35,84 +43,15 @@ export default function ActionPage() {
     };
     fetchActionMovies();
   }, []);
-  useEffect(() => {
-     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-    if (!userId) return;
-    Promise.all([
-      axios.get(`${BASE_URL}/api/user-liked/${userId}`, {
-        withCredentials: true,
-      }),
-      axios.get(`${BASE_URL}/api/user-saved/${userId}`, {
-        withCredentials: true,
-      }),
-    ])
-      .then(([likedRes, savedRes]) => {
-        setLikedMovies(likedRes.data.map((item: any) => item.movieId));
-        setSavedMovies(savedRes.data.map((item: any) => item.movieId));
-      })
-      .catch((err) => console.error(err));
-  }, []);
-  const handleLike = async (movie: Movie) => {
-    const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-    if (!userId) return;
-    try {
-      await axios.post(
-        `${BASE_URL}/api/liked-movie`,
-        { ...movie, userId },
-        { withCredentials: true },
-      );
-      setLikedMovies((prev) => [...prev, movie.id]);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  const handleSave = async (movie: Movie) => {
-     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-    if (!userId) return;
-    try {
-      await axios.post(
-        `${BASE_URL}/api/saved-movie`,
-        { ...movie, userId },
-        { withCredentials: true },
-      );
-      setSavedMovies((prev) => [...prev, movie.id]);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  const handleUnlike = async (movieId: number) => {
-     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-    if (!userId) return;
-    try {
-      await axios.delete(`${BASE_URL}/api/un-liked-movie/${movieId}`, {
-        data: { userId },
-        withCredentials: true,
-      });
-      setLikedMovies((prev) => prev.filter((id) => id !== movieId));
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  const handleUnsave = async (movieId: number) => {
-     const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-    if (!userId) return;
-    try {
-      await axios.delete(`${BASE_URL}/api/un-saved-movie/${movieId}`, {
-        data: { userId },
-        withCredentials: true,
-      });
-      setSavedMovies((prev) => prev.filter((id) => id !== movieId));
-    } catch (error) {
-      console.error(error);
-    }
-  };
   const sortedMovies = [...action].sort((a, b) => {
-    if (sortBy === "popularity") return b.popularity - a.popularity;
-    if (sortBy === "rating") return b.vote_average - a.vote_average;
+    if (sortBy === "popularity")
+      return (b?.popularity as number) - (a?.popularity as number);
+    if (sortBy === "rating")
+      return (b.vote_average as number) - (a.vote_average as number);
     if (sortBy === "year") {
       return (
-        new Date(b.release_date).getFullYear() -
-        new Date(a.release_date).getFullYear()
+        new Date(b.release_date!).getFullYear() -
+        new Date(a.release_date!).getFullYear()
       );
     }
     return 0;

@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { IoChevronForward, IoChevronBack } from "react-icons/io5";
 import Loading from "./loading";
 import MovieCard from "./movie-card";
-import { LikedMovie, SavedMovie, Movie } from "@/types";
+import { Movie } from "@/types";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { API_KEY, BASE_URL } from "@/utils";
@@ -12,7 +12,6 @@ export default function Trending() {
   const [trending, setTrending] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [showControls, setShowControls] = useState(false);
   const [likedMovies, setLikedMovies] = useState<number[]>([]);
   const [savedMovies, setSavedMovies] = useState<number[]>([]);
   const router = useRouter();
@@ -39,8 +38,8 @@ export default function Trending() {
               withCredentials: true,
             }),
           ]);
-          setLikedMovies(likedRes.data.map((item: LikedMovie) => item.movieId));
-          setSavedMovies(savedRes.data.map((item: SavedMovie) => item.movieId));
+          setLikedMovies(likedRes.data.map((item: any) => item.id));
+          setSavedMovies(savedRes.data.map((item: any) => item.id));
         }
       } catch (error) {
         console.error(error);
@@ -52,7 +51,10 @@ export default function Trending() {
   }, [userId]);
   const scroll = (direction: "left" | "right") => {
     if (carouselRef.current) {
-      const scrollAmount = direction === "left" ? -200 : 200;
+      const scrollAmount =
+        direction === "left"
+          ? -carouselRef.current.clientWidth * 0.75
+          : carouselRef.current.clientWidth * 0.75;
       carouselRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
@@ -126,37 +128,39 @@ export default function Trending() {
   };
   if (loading) return <Loading />;
   return (
-    <div className="px-16 py-8 max-md:px-4 relative group max-w-380 my-5 mt-8">
-      <h2 className="text-white text-2xl font-bold mb-4 flex items-center gap-2">
-        Trending Now
-        <span className="text-sm text-gray-400 font-normal">Updated daily</span>
-      </h2>
-      <div
-        className="relative"
-        onMouseEnter={() => setShowControls(true)}
-        onMouseLeave={() => setShowControls(false)}
-      >
-        {showControls && (
-          <>
-            <button
-              onClick={() => scroll("left")}
-              className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/80 text-white p-3 rounded-full transition-all duration-300 cursor-pointer"
-              aria-label="Scroll left"
-            >
-              <IoChevronBack className="text-2xl" />
-            </button>
-            <button
-              onClick={() => scroll("right")}
-              className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/80 text-white p-3 rounded-full transition-all duration-300 cursor-pointer"
-              aria-label="Scroll right"
-            >
-              <IoChevronForward className="text-2xl" />
-            </button>
-          </>
-        )}
+    <div className="px-6 md:px-16 py-6 relative max-w-380 mx-auto w-full group/row">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-white text-xl md:text-2xl font-bold flex items-center gap-2">
+          <span className="w-1.5 h-6 bg-red-600 rounded-full" />
+          Trenddagilar
+          <span className="text-xs text-zinc-400 font-normal hidden sm:inline ml-2">
+            Har kuni yangilanadi
+          </span>
+        </h2>
+      </div>
+
+      <div className="relative">
+        {/* Chap strelka (Netflix Full-Height Paddle) */}
+        <button
+          onClick={() => scroll("left")}
+          className="absolute -left-3 md:-left-6 top-0 bottom-0 w-10 md:w-12 bg-black/70 hover:bg-black/90 text-white z-30 flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-all duration-300 cursor-pointer backdrop-blur-xs rounded-r-lg shadow-2xl"
+          aria-label="Scroll left"
+        >
+          <IoChevronBack className="text-2xl md:text-3xl transition-transform hover:scale-125" />
+        </button>
+
+        {/* O'ng strelka (Netflix Full-Height Paddle) */}
+        <button
+          onClick={() => scroll("right")}
+          className="absolute -right-3 md:-right-6 top-0 bottom-0 w-10 md:w-12 bg-black/70 hover:bg-black/90 text-white z-30 flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-all duration-300 cursor-pointer backdrop-blur-xs rounded-l-lg shadow-2xl"
+          aria-label="Scroll right"
+        >
+          <IoChevronForward className="text-2xl md:text-3xl transition-transform hover:scale-125" />
+        </button>
+
         <div
           ref={carouselRef}
-          className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth"
+          className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide scroll-smooth py-3 px-1"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {trending.map((movie, index) => (
