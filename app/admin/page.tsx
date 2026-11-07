@@ -71,6 +71,14 @@ export default function AdminPage() {
 
   // Fetch all initial data
   const loadDashboardData = async () => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      toast.error("Iltimos avval administrator sifatida kiring");
+      router.replace("/auth/signin");
+      return;
+    }
+
     try {
       const [usersRes, statsRes] = await Promise.all([
         axios.get(`${BASE_URL}/api/admin`, { withCredentials: true }),

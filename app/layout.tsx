@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
+import "@/utils/api";
 import { Toaster } from "react-hot-toast";
 import Footer from "@/components/footer";
 const roboto = Roboto({

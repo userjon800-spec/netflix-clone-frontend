@@ -42,10 +42,15 @@ export default function SignIn() {
       const { data, status } = await axios.post(`${BASE_URL}/api/login`, body, {
         withCredentials: true,
       });
-      if (typeof window !== "undefined" && data.user) {
-        localStorage.setItem("userId", data.user._id || data.user.id);
+      if (typeof window !== "undefined") {
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
+        if (data.user) {
+          localStorage.setItem("userId", data.user._id || data.user.id);
+        }
       }
-      if (data.user.role === "admin") {
+      if (data.user?.role === "admin") {
         router.push("/admin");
         return;
       } else if (status === 200) {
@@ -65,9 +70,16 @@ export default function SignIn() {
   };
   useEffect(() => {
     const checkAuth = async () => {
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      if (!token) return;
+
       try {
         const res = await fetch(`${BASE_URL}/api/me`, {
           credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
         if (res.ok) router.replace("/");
       } catch (error) {

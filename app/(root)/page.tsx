@@ -25,11 +25,25 @@ export default function Home() {
   const [dontShowAgain, setDontShowAgain] = useState(false);
   useEffect(() => {
     (async () => {
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      if (!token) {
+        router.replace("/auth/signin");
+        return;
+      }
+
       try {
         const res = await fetch(`${BASE_URL}/api/me`, {
           credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
         if (!res.ok) {
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("token");
+            localStorage.removeItem("userId");
+          }
           router.replace("/auth/signin");
           return;
         }

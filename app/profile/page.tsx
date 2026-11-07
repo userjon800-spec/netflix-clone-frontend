@@ -40,6 +40,13 @@ export default function ProfilePage() {
   const [updatedAvatar, setUpdatedAvatar] = useState(false);
 
   useEffect(() => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      window.location.href = "/auth/signin";
+      return;
+    }
+
     axios
       .get(`${BASE_URL}/api/me`, { withCredentials: true })
       .then(({ data }) => {
@@ -271,8 +278,9 @@ export default function ProfilePage() {
                 <UploadButton
                   className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                   endpoint="imageUploader"
-                  onClientUploadComplete={(res) => {
-                    const url = res[0].ufsUrl;
+                  onClientUploadComplete={(res: any) => {
+                    const url = res?.[0]?.ufsUrl || res?.[0]?.url;
+                    if (!url) return;
                     axios
                       .put(
                         `${BASE_URL}/api/user-avatar`,

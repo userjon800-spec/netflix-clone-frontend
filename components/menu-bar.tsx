@@ -36,8 +36,15 @@ export default function MenuBar() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
   useEffect(() => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) return;
+
     axios
-      .get(`${BASE_URL}/api/me`, { withCredentials: true })
+      .get(`${BASE_URL}/api/me`, {
+        withCredentials: true,
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then(({ data }) => {
         if (data.user) {
           const id = data.user._id || data.user.id;

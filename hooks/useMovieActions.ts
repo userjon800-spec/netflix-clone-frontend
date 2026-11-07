@@ -15,8 +15,10 @@ export function useMovieActions() {
     const id =
       currentUserId ||
       (typeof window !== "undefined" ? localStorage.getItem("userId") : null);
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-    if (!id) return;
+    if (!id || !token) return;
     setUserId(id);
 
     try {

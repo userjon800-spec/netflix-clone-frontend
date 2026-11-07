@@ -39,8 +39,16 @@ export default function SignUp() {
         withCredentials: true,
       });
       if (res.status === 200) {
-        if (typeof window !== "undefined" && res.data.user) {
-          localStorage.setItem("userId", res.data.user._id || res.data.user.id);
+        if (typeof window !== "undefined") {
+          if (res.data.token) {
+            localStorage.setItem("token", res.data.token);
+          }
+          if (res.data.user) {
+            localStorage.setItem(
+              "userId",
+              res.data.user._id || res.data.user.id,
+            );
+          }
         }
         toast.success(res.data.message || "Registration successful!");
         router.push("/");
@@ -56,12 +64,24 @@ export default function SignUp() {
     }
   };
   useEffect(() => {
-    (async () => {
-      const res = await fetch(`${BASE_URL}/api/me`, {
-        credentials: "include",
-      });
-      if (res.ok) router.replace("/");
-    })();
+    const checkAuth = async () => {
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      if (!token) return;
+
+      try {
+        const res = await fetch(`${BASE_URL}/api/me`, {
+          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (res.ok) router.replace("/");
+      } catch (error) {
+        console.error("Auth check failed:", error);
+      }
+    };
+    checkAuth();
   }, [router]);
   return (
     <div className="min-h-screen relative bg-black flex flex-col z-30">

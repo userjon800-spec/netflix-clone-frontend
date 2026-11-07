@@ -1,58 +1,44 @@
 "use client";
+
 import axios from "axios";
 import { useEffect, useState, useRef } from "react";
-import {
-  IoChevronForward,
-  IoChevronBack,
-  IoTimeOutline,
-} from "react-icons/io5";
+import { IoChevronForward, IoChevronBack } from "react-icons/io5";
 import Loading from "./loading";
 import MovieCard from "./movie-card";
 import { Movie } from "@/types";
-import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
-import { API_KEY, BASE_URL } from "@/utils";
+import { API_KEY } from "@/utils";
+import { useMovieActions } from "@/hooks/useMovieActions";
+
 export default function Popular() {
   const [popular, setPopular] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [likedMovies, setLikedMovies] = useState<number[]>([]);
-  const [savedMovies, setSavedMovies] = useState<number[]>([]);
-  const router = useRouter();
-  const [userId, setUserId] = useState<string | null>(null);
-  useEffect(() => {
-    const id =
-      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-    setUserId(id);
-  }, []);
+  const {
+    likedMovies,
+    savedMovies,
+    handleLike,
+    handleSave,
+    handleUnlike,
+    handleUnsave,
+  } = useMovieActions();
+
   useEffect(() => {
     const fetchPopular = async () => {
       try {
         setLoading(true);
         const { data } = await axios.get(
-          `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=en-US&page=1`,
+          `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=en-US&page=1`
         );
         setPopular(data.results || []);
-        if (userId) {
-          const [likedRes, savedRes] = await Promise.all([
-            axios.get(`${BASE_URL}/api/user-liked/${userId}`, {
-              withCredentials: true,
-            }),
-            axios.get(`${BASE_URL}/api/user-saved/${userId}`, {
-              withCredentials: true,
-            }),
-          ]);
-          setLikedMovies(likedRes.data.map((item: any) => item.id));
-          setSavedMovies(savedRes.data.map((item: any) => item.id));
-        }
       } catch (error) {
-        console.error(error);
+        console.error("Popular fetch error:", error);
       } finally {
         setLoading(false);
       }
     };
     fetchPopular();
-  }, [userId]);
+  }, []);
+
   const scroll = (direction: "left" | "right") => {
     if (carouselRef.current) {
       const scrollAmount =
@@ -62,135 +48,58 @@ export default function Popular() {
       carouselRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
-  const formatPopularity = (pop: number) => {
-    if (pop > 1000) return `${(pop / 1000).toFixed(1)}K`;
-    return Math.round(pop).toString();
-  };
-  const handleLike = async (movie: Movie) => {
-    const currentUserId =
-      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-    if (!currentUserId) {
-      console.error("Please login to like movies");
-      router.push("/auth/signin");
-      return;
-    }
-    try {
-      await axios.post(
-        `${BASE_URL}/api/liked-movie`,
-        { ...movie, userId: currentUserId },
-        { withCredentials: true },
-      );
-      setLikedMovies((prev) => [...prev, movie.id]);
-    } catch (error: any) {
-      console.error(error.response?.data?.message || "Failed to like movie");
-    }
-  };
-  const handleUnlike = async (movieId: number) => {
-    const currentUserId =
-      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-    if (!currentUserId) return;
-    try {
-      await axios.delete(`${BASE_URL}/api/un-liked-movie/${movieId}`, {
-        data: { userId: currentUserId },
-        withCredentials: true,
-      });
-      setLikedMovies((prev) => prev.filter((id) => id !== movieId));
-    } catch (error: any) {
-      console.error(error.response?.data?.message || "Failed to unlike movie");
-    }
-  };
-  const handleSave = async (movie: Movie) => {
-    const currentUserId =
-      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-    if (!currentUserId) {
-      toast.error("Please login to save movies");
-      router.push("/auth/signin");
-      return;
-    }
-    try {
-      await axios.post(
-        `${BASE_URL}/api/saved-movie`,
-        { ...movie, userId: currentUserId },
-        { withCredentials: true },
-      );
-      setSavedMovies((prev) => [...prev, movie.id]);
-      toast.success("Added to saved movies");
-    } catch (error: any) {
-      console.error(error.response?.data?.message || "Failed to save movie");
-    }
-  };
-  const handleUnsave = async (movieId: number) => {
-    const currentUserId =
-      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-    if (!currentUserId) return;
-    try {
-      await axios.delete(`${BASE_URL}/api/un-saved-movie/${movieId}`, {
-        data: { userId: currentUserId },
-        withCredentials: true,
-      });
-      setSavedMovies((prev) => prev.filter((id) => id !== movieId));
-      toast.success("Removed from saved movies");
-    } catch (error: any) {
-      console.error(error.response?.data?.message || "Failed to unsave movie");
-    }
-  };
+
   if (loading) return <Loading />;
+
   return (
-    <div className="px-6 md:px-16 py-6 relative max-w-380 mx-auto w-full group/row">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <h2 className="text-white text-xl md:text-2xl font-bold flex items-center gap-2">
-            <span className="w-1.5 h-6 bg-red-600 rounded-full" />
-            Ommabop Filmlar
-          </h2>
-          <span className="hidden sm:inline-block bg-zinc-800 text-zinc-300 border border-zinc-700 text-xs px-2.5 py-0.5 rounded-full">
-            Top 20
+    <div className="relative group/section py-4">
+      <div className="flex items-center justify-between mb-3 px-4 md:px-12">
+        <h2 className="text-lg md:text-xl font-bold text-white tracking-wide flex items-center gap-2">
+          <span>Ommabop Filmlar</span>
+          <span className="text-xs font-normal text-red-500 uppercase tracking-widest bg-red-600/10 px-2 py-0.5 rounded border border-red-500/20">
+            Popular
           </span>
-        </div>
-        <div className="hidden md:flex items-center gap-2 text-xs text-zinc-400">
-          <IoTimeOutline />
-          <span>Har kuni yangilanadi</span>
-        </div>
+        </h2>
       </div>
 
-      <div className="relative">
+      <div className="relative group">
         <button
           onClick={() => scroll("left")}
-          className="absolute -left-3 md:-left-6 top-0 bottom-0 w-10 md:w-12 bg-black/70 hover:bg-black/90 text-white z-30 flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-all duration-300 cursor-pointer backdrop-blur-xs rounded-r-lg shadow-2xl"
-          aria-label="Scroll left"
+          className="absolute left-0 top-0 bottom-0 z-30 w-10 md:w-14 bg-black/60 hover:bg-black/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-xs cursor-pointer"
+          aria-label="Previous"
         >
-          <IoChevronBack className="text-2xl md:text-3xl transition-transform hover:scale-125" />
-        </button>
-
-        <button
-          onClick={() => scroll("right")}
-          className="absolute -right-3 md:-right-6 top-0 bottom-0 w-10 md:w-12 bg-black/70 hover:bg-black/90 text-white z-30 flex items-center justify-center opacity-0 group-hover/row:opacity-100 transition-all duration-300 cursor-pointer backdrop-blur-xs rounded-l-lg shadow-2xl"
-          aria-label="Scroll right"
-        >
-          <IoChevronForward className="text-2xl md:text-3xl transition-transform hover:scale-125" />
+          <IoChevronBack className="text-2xl md:text-3xl text-white drop-shadow-md" />
         </button>
 
         <div
           ref={carouselRef}
-          className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide scroll-smooth py-3 px-1"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          className="flex items-center gap-2.5 sm:gap-3.5 md:gap-4 overflow-x-auto scrollbar-hide px-4 md:px-12 py-3 scroll-smooth"
         >
-          {popular.map((movie, index) => (
-            <MovieCard
+          {popular.map((movie) => (
+            <div
               key={movie.id}
-              movie={movie}
-              index={index}
-              isLiked={likedMovies.includes(movie.id)}
-              isSaved={savedMovies.includes(movie.id)}
-              onLike={handleLike}
-              onSave={handleSave}
-              onUnlike={handleUnlike}
-              onUnsave={handleUnsave}
-              showIndex={false}
-              layout="carousel"
-            />
+              className="shrink-0 w-[140px] sm:w-[165px] md:w-[190px] lg:w-[210px]"
+            >
+              <MovieCard
+                movie={movie}
+                isLiked={likedMovies.includes(movie.id)}
+                isSaved={savedMovies.includes(movie.id)}
+                onLike={handleLike}
+                onSave={handleSave}
+                onUnlike={handleUnlike}
+                onUnsave={handleUnsave}
+              />
+            </div>
           ))}
         </div>
+
+        <button
+          onClick={() => scroll("right")}
+          className="absolute right-0 top-0 bottom-0 z-30 w-10 md:w-14 bg-black/60 hover:bg-black/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-xs cursor-pointer"
+          aria-label="Next"
+        >
+          <IoChevronForward className="text-2xl md:text-3xl text-white drop-shadow-md" />
+        </button>
       </div>
     </div>
   );
