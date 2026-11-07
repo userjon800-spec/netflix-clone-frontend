@@ -184,47 +184,39 @@ export default function AboutPage() {
         </div>
         <div className="max-w-4xl mx-auto mb-16">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <IoBugOutline className="text-red-600" />
-            Known Issues & Improvements
+            <IoRocketOutline className="text-red-600" />
+            Key Optimizations & Platform Upgrades
           </h2>
           <div className="bg-gray-900/50 rounded-xl border border-gray-800 p-6">
             <p className="text-gray-300 mb-4">
-              As this is a new project, you might encounter some issues. Here
-              are things we're working on:
+              Recently implemented core architectural improvements and UX enhancements:
             </p>
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-3">
-                <span className="text-red-500 mt-1">•</span>
-                <span className="text-gray-400">
-                  Mobile responsiveness on some pages needs improvement
+                <span className="text-emerald-500 mt-1">✓</span>
+                <span className="text-gray-300">
+                  <strong className="text-white">YouTube-Style Search:</strong> Instant debounced live search, trending search tags, recent search history, and global Ctrl+K shortcut.
                 </span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="text-red-500 mt-1">•</span>
-                <span className="text-gray-400">
-                  Search functionality might be slow with large queries
+                <span className="text-emerald-500 mt-1">✓</span>
+                <span className="text-gray-300">
+                  <strong className="text-white">Real-Time State Sync:</strong> Centralized <code className="text-red-400">useMovieActions</code> hook ensures Like/Save updates reflect across all categories and profile immediately without refreshing.
                 </span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="text-red-500 mt-1">•</span>
-                <span className="text-gray-400">
-                  Some images may not load properly on first visit
+                <span className="text-emerald-500 mt-1">✓</span>
+                <span className="text-gray-300">
+                  <strong className="text-white">Admin Observability & CRUD:</strong> Full management panel with live metrics, role switching, user blocking, user inspection modals, and CSV export.
                 </span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="text-red-500 mt-1">•</span>
-                <span className="text-gray-400">
-                  Like/Save features occasionally need page refresh to update
+                <span className="text-emerald-500 mt-1">✓</span>
+                <span className="text-gray-300">
+                  <strong className="text-white">Sleek & Cinematic Design:</strong> Apple TV+ & modern Netflix minimal card aesthetic, Hero Billboard banner, and interactive profile dashboard.
                 </span>
               </li>
             </ul>
-            <div className="mt-6 p-4 bg-yellow-600/10 border border-yellow-600/20 rounded-lg">
-              <p className="text-sm text-yellow-500 flex items-center gap-2">
-                <IoBugOutline className="text-lg" />
-                Found a bug? Please report it through the help page or contact
-                directly.
-              </p>
-            </div>
           </div>
         </div>
         <div className="max-w-4xl mx-auto">
